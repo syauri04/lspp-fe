@@ -1,0 +1,344 @@
+{
+  "navigation": {
+    "about": "Tentang Kami",
+    "certification": "Sertifikasi",
+    "certificationScheme": "Skema Sertifikasi",
+    "certificationFlow": "Alur Sertifikasi",
+    "trackingProcess": "Tracking Proses",
+    "verifyCertificate": "Verifikasi E-Sertifikat",
+    "news": "Berita",
+    "calendar": "Kalender",
+    "gallery": "Galeri",
+    "faq": "FAQ",
+    "signIn": "Masuk",
+    "signUp": "Daftar",
+    "notifications": "Notifikasi",
+    "profile": "Profil"
+  },
+  "home": {
+    "hero": {
+      "slide1Title": "Raih Sertifikasi Pariwisata Anda Bersama Kami",
+      "slide1Desc": "Tingkatkan kompetensi dan profesionalisme Anda di industri pariwisata melalui program sertifikasi resmi yang diakui nasional. Bersama tenaga pengajar berpengalaman, kami siap membimbing Anda menuju standar layanan pariwisata terbaik.",
+      "slide2Title": "Standar Global untuk Industri Lokal",
+      "slide2Desc": "Mempersiapkan tenaga kerja pariwisata yang kompeten, kompetitif, dan beretika untuk menjawab tantangan industri pariwisata di tingkat nasional maupun internasional.",
+      "slide3Title": "Wujudkan Karir Impian di Sektor Pariwisata",
+      "slide3Desc": "Bergabunglah dengan ribuan profesional lainnya yang telah tersertifikasi. Proses transparan, kredibel, dan didukung oleh asesor berpengalaman di bidangnya."
+    },
+    "icons": {
+      "schemes": "Skema",
+      "assessors": "Asesor",
+      "tuk": "TUK"
+    },
+    "aboutSection": {
+      "title": "LSPP 306 - Tiga Puluh Juni",
+      "desc1": "LSPP 306 (Tiga Puluh Juni) adalah lembaga sertifikasi profesi yang berkomitmen untuk meningkatkan standar kompetensi dan profesionalisme tenaga kerja di bidangnya. Kami hadir sebagai mitra strategis bagi individu maupun organisasi yang ingin memastikan kualifikasi dan keahlian sesuai dengan standar nasional yang berlaku.",
+      "desc2": "Dengan pengalaman lebih dari satu dekade, LSPP 306 telah melayani ribuan peserta sertifikasi dari berbagai sektor industri. Kami beroperasi di bawah lisensi resmi dan diakui oleh Badan Nasional Sertifikasi Profesi (BNSP), menjamin bahwa setiap sertifikat yang kami keluarkan memiliki nilai pengakuan yang tinggi di pasar kerja nasional maupun internasional.",
+      "desc3": "Kami percaya bahwa kompetensi yang tersertifikasi adalah fondasi dari karier yang kokoh dan organisasi yang berdaya saing tinggi. LSPP 306 terus berkomitmen untuk memberikan layanan uji kompetensi yang profesional, objektif, dan dapat dipercaya oleh seluruh pemangku kepentingan.",
+      "moreBtn": "Selengkapnya"
+    },
+    "certificationsSection": {
+      "title": "Skema Sertifikasi",
+      "schemes": [
+        {
+          "title": "Skema Sertifikasi Okupasi Penulis Buku",
+          "description": "Kompetensi penulisan buku fiksi dan non-fiksi sesuai standar industri."
+        },
+        {
+          "title": "Skema Sertifikasi Editor Naskah",
+          "description": "Pelatihan penyuntingan naskah profesional untuk industri penerbitan."
+        },
+        {
+          "title": "Skema Sertifikasi Desainer Grafis Madya",
+          "description": "Sertifikasi keahlian desain komunikasi visual dan branding."
+        },
+        {
+          "title": "Skema Sertifikasi Digital Marketer",
+          "description": "Strategi pemasaran digital, SEO, dan pengelolaan media sosial."
+        },
+        {
+          "title": "Skema Sertifikasi Content Creator",
+          "description": "Produksi konten kreatif multimedia untuk berbagai platform digital."
+        },
+        {
+          "title": "Skema Sertifikasi Web Developer",
+          "description": "Pembangunan dan pengelolaan aplikasi web berbasis standar industri."
+        },
+        {
+          "title": "Skema Sertifikasi Copywriter",
+          "description": "Teknik penulisan persuasif untuk periklanan dan pemasaran."
+        },
+        {
+          "title": "Skema Sertifikasi Data Analyst",
+          "description": "Pengolahan dan visualisasi data untuk pengambilan keputusan bisnis."
+        }
+      ]
+    },
+    "newsSection": {
+      "title": "Berita Terbaru",
+      "viewPost": "Lihat Postingan"
+    },
+    "socialSection": {
+      "title": "Media Sosial",
+      "clients": "Klien Kami"
+    }
+  },
+  "login": {
+    "title": "Masuk ke Akun Anda",
+    "subtitle": "Selamat datang kembali",
+    "email": "Email",
+    "password": "Password",
+    "emailPlaceholder": "Masukan email anda",
+    "rememberMe": "tetap login di perangkat",
+    "forgotPassword": "Lupa Password",
+    "signInBtn": "Masuk",
+    "signInGoogle": "Sign in with Google",
+    "noAccount": "Belum punya akun?",
+    "registerHere": "Daftar"
+  },
+  "register": {
+    "title": "Buat Akun Anda",
+    "subtitle": "Anda wajib memiliki akun untuk mendaftar assesmen",
+    "name": "Nama*",
+    "email": "Email*",
+    "password": "Kata Sandi*",
+    "confirmPassword": "Konfirmasi Password*",
+    "captcha": "Captcha",
+    "namePlaceholder": "Masukan nama anda",
+    "emailPlaceholder": "Masukan email anda",
+    "passwordPlaceholder": "Buat kata sandi",
+    "confirmPasswordPlaceholder": "Ketik ulang kata sandi",
+    "captchaPlaceholder": "Masukan Karakter di atas",
+    "passwordHint": "Harus lebih dari 8 huruf",
+    "createBtn": "Buat Akun",
+    "registerGoogle": "Daftar dengan Google",
+    "haveAccount": "Sudah punya akun?",
+    "loginHere": "Masuk"
+  },
+  "profile": {
+    "title": "Profil Saya",
+    "schemesFollowed": "Skema Yang pernah diikuti:",
+    "downloadCertificate": "Unduh E-Sertifikat",
+    "editProfile": "Edit Profile",
+    "validUntil": "Berlaku Sampai:",
+    "myAccount": "Akun Saya",
+    "viewProfile": "Lihat Profil"
+  },
+  "about": {
+    "title": "LSPP 306 - Tiga Puluh Juni",
+    "mainTitle": "Tentang Kami",
+    "desc1": "LSPP 306 (Tiga Puluh Juni) adalah lembaga sertifikasi profesi yang berkomitmen untuk meningkatkan standar kompetensi dan profesionalisme tenaga kerja di bidangnya. Kami hadir sebagai mitra strategis bagi individu maupun organisasi yang ingin memastikan kualifikasi dan keahlian sesuai dengan standar nasional yang berlaku.",
+    "desc2": "Dengan pengalaman lebih dari satu dekade, LSPP 306 telah melayani ribuan peserta sertifikasi dari berbagai sektor industri. Kami beroperasi di bawah lisensi resmi dan diakui oleh Badan Nasional Sertifikasi Profesi (BNSP), menjamin bahwa setiap sertifikat yang kami keluarkan memiliki nilai pengakuan yang tinggi di pasar kerja nasional maupun internasional.",
+    "desc3": "Kami percaya bahwa kompetensi yang tersertifikasi adalah fondasi dari karier yang kokoh dan organisasi yang berdaya saing tinggi. LSPP 306 terus berkomitmen untuk memberikan layanan uji kompetensi yang profesional, objektif, dan dapat dipercaya oleh seluruh pemangku kepentingan.",
+    "visionMission": {
+      "vision": "Visi",
+      "mission": "Misi"
+    },
+    "structure": {
+      "title": "Struktur Organisasi",
+      "boardOfExperts": "Board of Experts",
+      "executiveLeadership": "Executive Leadership",
+      "operationsAdmin": "Operations and Administration"
+    },
+    "position": "Jabatan",
+    "tukSection": {
+      "title": "Tempat Uji Kompetensi",
+      "subtitle": "Lokasi TUK LSPP 306",
+      "locations": [
+        {
+          "name": "TUK Mandiri — Jakarta Selatan",
+          "address": "Jl. Sudirman No. 45, Kebayoran Baru, Jakarta Selatan",
+          "schedule": "Senin - Jumat, 08.00 - 17.00 WIB",
+          "code": "TUK-001"
+        },
+        {
+          "name": "TUK Sewaktu — Bandung",
+          "address": "Jl. Asia Afrika No. 12, Sumur Bandung, Bandung",
+          "schedule": "Senin - Sabtu, 08.00 - 16.00 WIB",
+          "code": "TUK-002"
+        },
+        {
+          "name": "TUK Mandiri — Surabaya",
+          "address": "Jl. Pemuda No. 31, Genteng, Surabaya",
+          "schedule": "Senin - Jumat, 08.00 - 17.00 WIB",
+          "code": "TUK-003"
+        },
+        {
+          "name": "TUK Sewaktu — Medan",
+          "address": "Jl. Gatot Subroto No. 78, Medan Petisah, Medan",
+          "schedule": "Senin - Jumat, 08.00 - 17.00 WIB",
+          "code": "TUK-004"
+        },
+        {
+          "name": "TUK Sewaktu — Yogyakarta",
+          "address": "Jl. Malioboro No. 55, Gedongtengen, Yogyakarta",
+          "schedule": "Jadwal operasional akan diumumkan",
+          "code": "TUK-005"
+        },
+        {
+          "name": "TUK Tambahan — Bali",
+          "address": "Jl. Legian, Jl. By Pass Ngurah Rai, Jl. Tol Bali Mandara, serta pusat kuliner di Jl. Dewi Sri",
+          "schedule": "Senin - Jumat, 08.00 - 17.00 WIB",
+          "code": "TUK-006"
+        }
+      ]
+    },
+    "assessorSection": {
+      "title": "Asesor",
+      "subtitle": "Daftar Asesor Kompetensi",
+      "searchPlaceholder": "Cari Asesor..."
+    },
+    "certificateHoldersSection": {
+      "title": "Daftar Pemegang Sertifikat"
+    }
+  },
+  "news": {
+    "title": "Berita",
+    "searchPlaceholder": "Cari Sertifikasi...",
+    "sortBy": "Urut Berdasarkan",
+    "newest": "Terbaru",
+    "oldest": "Terlama",
+    "mostViewed": "Terbanyak dibuka",
+    "category": "Kategori",
+    "relatedNews": "Berita Terkait",
+    "author": "Tim LSPP"
+  },
+  "calendar": {
+    "title": "Kalender",
+    "scheduledCertifications": "Sertifikasi Yang Dijadwalkan"
+  },
+  "gallery": {
+    "title": "Galeri",
+    "album": "Album",
+    "newest": "Terbaru",
+    "oldest": "Terlama",
+    "sortBy": "Urut Berdasarkan"
+  },
+  "faq": {
+    "title": "FAQ",
+    "frequentlyAsked": "Pertanyaan yang Sering Diajukan"
+  },
+  "notification": {
+    "title": "Notifikasi",
+    "subtitle": "Pusat informasi sertifikasi dan pembaruan akun Anda"
+  },
+  "certification": {
+    "schemes": {
+      "title": "Skema Sertifikasi",
+      "subtitle": "Pilih berbagai skema sertifikasi kompetensi yang telah diakui secara nasional.",
+      "sortBy": "Urut Berdasarkan",
+      "newest": "Terbaru",
+      "oldest": "Terlama",
+      "mostViewed": "Terbanyak dibuka",
+      "category": "Kategori"
+    },
+    "flow": {
+      "title": "Alur Sertifikasi",
+      "subtitle": "Pahami langkah-langkah dalam proses pengajuan hingga penerbitan sertifikasi kompetensi Anda.",
+      "steps": [
+        {
+          "title": "Pengajuan Permohonan Sertifikasi",
+          "description": "Calon asesi mengajukan permohonan mengikuti sertifikasi dan memilih skema, melengkapi dokumen persyaratan"
+        },
+        {
+          "title": "Verifikasi dan Validasi Dokumen",
+          "description": "Admin LSP memverifikasi dan validasi dokumen persyaratan. Bila dinyatakan layak, asesi akan dijadwalkan untuk mengikuti uji kompetensi."
+        },
+        {
+          "title": "Pembayaran Biaya Asesmen",
+          "description": "Calon Asesi melakukan pembayaran. Bukti pembayaran disampaikan kepada Admin."
+        },
+        {
+          "title": "Pelaksanaan Asesmen Kompetensi",
+          "description": "Asesor melaksanakan asesmen/uji kompetensi"
+        },
+        {
+          "title": "Penetapan Keputusan Sertifikasi",
+          "description": "Asesor menyerahkan hasil asesmen kepada LSP. LSP meninjau dan menetapkan keputusan apakah asesi kompeten atau belum secara objektif dan terdokumentasi."
+        },
+        {
+          "title": "Penertbian Sertifikasi Kompetensi",
+          "description": "Bagi Asesi yang dinyatakan kompeten, LSP menerbitkan sertifikat kompetensi resmi yang diakui oleh BNSP"
+        }
+      ]
+    },
+    "tracking": {
+      "title": "Tracking Proses",
+      "subtitle": "Silahkan pilih Sertifikasi untuk melihat status detail perkembangan pengajuan Anda.",
+      "applicationReceived": "Pengajuan Diterima",
+      "completed": "Selesai",
+      "submitted": "Diajukan",
+      "batch": "Batch",
+      "tuk": "Tempat Uji Kompetensi",
+      "timeline": {
+        "applicationTitle": "Pengajuan Sertifikasi",
+        "applicationStatus": "Menunggu Persetujuan",
+        "registrationTitle": "Pendaftaran diterima",
+        "registrationStatus": "Berkas lengkap dan valid.",
+        "schedulingTitle": "Penjadwalan asesmen",
+        "schedulingStatus": "Asesmen dilaksanakan 12 April 2026.",
+        "assessmentTitle": "Asesmen kompetensi",
+        "assessmentStatus": "Uji teori dan praktik selesai.",
+        "announcementTitle": "Pengumuman hasil",
+        "announcementStatus": "Dinyatakan KOMPETEN. Sertifikat sedang diproses."
+      }
+    },
+    "verify": {
+      "title": "Verifikasi E-Sertifikat",
+      "subtitle": "Pastikan keaslian sertifikat Anda dengan memasukkan nomor registrasi yang tertera pada dokumen.",
+      "certificateNumber": "Nomor Sertifikat:",
+      "numberPlaceholder": "Contoh: LSPP306-2024-001234",
+      "verifyBtn": "Verifikasi",
+      "validResult": "Sertifikat valid dan terdaftar",
+      "certificateHolderName": "Nama Pemegang",
+      "certificationScheme": "Skema Sertifikasi",
+      "testingCenter": "Tempat Uji Kompetensi",
+      "issueDate": "Tanggal Terbit",
+      "validUntil": "Masa Berlaku",
+      "bnspRegNumber": "No. Registrasi BNSP",
+      "status": "Status",
+      "active": "Aktif"
+    },
+    "detail": {
+      "price": "Harga",
+      "saveBtn": "Simpan Sertifikasi",
+      "registerBtn": "Daftar Sertifikasi",
+      "relatedAssessments": "Asesmen Terkait"
+    },
+    "register": {
+      "breadcrumb1": "Skema Sertifikasi",
+      "description": "Ajukan sertifikasi untuk memvalidasi keterampilan pelayanan, komunikasi, dan standar layanan Anda di bidang food & beverage.",
+      "draftSaved": "* Draft Tersimpan",
+      "uploadKTP": "Unggah KTP Anda",
+      "uploadPhoto": "Unggah Pas-Foto Anda",
+      "uploadDiploma": "Unggah Ijazah Terakhir Anda",
+      "uploadCV": "Unggah CV Anda",
+      "uploadPortfolio": "Unggah Portofolio Anda",
+      "submitBtn": "Submit"
+    }
+  },
+  "common": {
+    "signIn": "Masuk",
+    "signUp": "Daftar",
+    "logout": "Keluar",
+    "email": "Email",
+    "password": "Kata Sandi",
+    "name": "Nama",
+    "search": "Cari",
+    "filter": "Filter",
+    "sort": "Urutkan",
+    "category": "Kategori",
+    "status": "Status",
+    "date": "Tanggal",
+    "action": "Aksi",
+    "edit": "Edit",
+    "delete": "Hapus",
+    "save": "Simpan",
+    "cancel": "Batal",
+    "close": "Tutup",
+    "loading": "Memuat...",
+    "error": "Kesalahan",
+    "success": "Berhasil",
+    "warning": "Peringatan",
+    "info": "Informasi"
+  }
+}

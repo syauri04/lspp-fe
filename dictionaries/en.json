@@ -1,0 +1,347 @@
+{
+  "navigation": {
+    "about": "About Us",
+    "certification": "Certification",
+    "certificationScheme": "Certification Scheme",
+    "certificationFlow": "Certification Flow",
+    "trackingProcess": "Process Tracking",
+    "verifyCertificate": "Verify E-Certificate",
+    "news": "News",
+    "calendar": "Calendar",
+    "gallery": "Gallery",
+    "faq": "FAQ",
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "notifications": "Notifications",
+    "profile": "Profile"
+  },
+  "home": {
+    "hero": {
+      "slide1Title": "Achieve Your Tourism Certification With Us",
+      "slide1Desc": "Enhance your competence and professionalism in the tourism industry through an official certification program recognized nationally. With experienced educators, we are ready to guide you towards the best tourism service standards.",
+      "slide2Title": "Global Standards for Local Industry",
+      "slide2Desc": "Preparing competent, competitive, and ethical tourism workers to meet the challenges of the tourism industry at both national and international levels.",
+      "slide3Title": "Realize Your Dream Career in the Tourism Sector",
+      "slide3Desc": "Join thousands of other certified professionals. Transparent process, credible, and supported by experienced assessors in their field."
+    },
+    "icons": {
+      "schemes": "Schemes",
+      "assessors": "Assessors",
+      "tuk": "Testing Centers"
+    },
+    "aboutSection": {
+      "title": "LSPP 306 - Tiga Puluh Juni",
+      "desc1": "LSPP 306 (Tiga Puluh Juni) is a professional certification body committed to improving competency standards and worker professionalism in its field. We serve as a strategic partner for individuals and organizations seeking to ensure qualifications and expertise aligned with applicable national standards.",
+      "desc2": "With over a decade of experience, LSPP 306 has served thousands of certification participants from various industry sectors. We operate under official license and are recognized by the National Professional Certification Board (BNSP), ensuring that every certificate we issue has high recognition value in both national and international job markets.",
+      "desc3": "We believe that certified competence is the foundation of solid careers and highly competitive organizations. LSPP 306 remains committed to providing professional, objective, and trustworthy competency testing services to all stakeholders.",
+      "moreBtn": "Learn More"
+    },
+    "certificationsSection": {
+      "title": "Certification Schemes",
+      "schemes": [
+        {
+          "title": "Writer Occupation Certification Scheme",
+          "description": "Fiction and non-fiction book writing competence according to industry standards."
+        },
+        {
+          "title": "Manuscript Editor Certification Scheme",
+          "description": "Professional manuscript editing training for the publishing industry."
+        },
+        {
+          "title": "Senior Graphic Designer Certification Scheme",
+          "description": "Visual communication design and branding expertise certification."
+        },
+        {
+          "title": "Digital Marketer Certification Scheme",
+          "description": "Digital marketing strategy, SEO, and social media management."
+        },
+        {
+          "title": "Content Creator Certification Scheme",
+          "description": "Multimedia creative content production for various digital platforms."
+        },
+        {
+          "title": "Web Developer Certification Scheme",
+          "description": "Web application development and management based on industry standards."
+        },
+        {
+          "title": "Copywriter Certification Scheme",
+          "description": "Persuasive writing techniques for advertising and marketing."
+        },
+        {
+          "title": "Data Analyst Certification Scheme",
+          "description": "Data processing and visualization for business decision making."
+        }
+      ]
+    },
+    "newsSection": {
+      "title": "Latest News",
+      "viewPost": "View Post"
+    },
+    "socialSection": {
+      "title": "Social Media",
+      "clients": "Our Clients"
+    }
+  },
+  "login": {
+    "title": "Sign In to Your Account",
+    "subtitle": "Welcome back",
+    "email": "Email",
+    "password": "Password",
+    "emailPlaceholder": "Enter your email",
+    "rememberMe": "Keep me signed in on this device",
+    "forgotPassword": "Forgot Password?",
+    "signInBtn": "Sign In",
+    "signInGoogle": "Sign in with Google",
+    "noAccount": "Don't have an account?",
+    "registerHere": "Register here"
+  },
+  "register": {
+    "title": "Create Your Account",
+    "subtitle": "You must have an account to register for assessment",
+    "name": "Name*",
+    "email": "Email*",
+    "password": "Password*",
+    "confirmPassword": "Confirm Password*",
+    "captcha": "Captcha",
+    "namePlaceholder": "Enter your name",
+    "emailPlaceholder": "Enter your email",
+    "passwordPlaceholder": "Create a password",
+    "confirmPasswordPlaceholder": "Retype password",
+    "captchaPlaceholder": "Enter the characters above",
+    "passwordHint": "Must be more than 8 characters",
+    "createBtn": "Create Account",
+    "registerGoogle": "Register with Google",
+    "haveAccount": "Already have an account?",
+    "loginHere": "Sign in here"
+  },
+  "profile": {
+    "title": "My Profile",
+    "schemesFollowed": "Schemes You Have Participated:",
+    "downloadCertificate": "Download E-Certificate",
+    "editProfile": "Edit Profile",
+    "validUntil": "Valid Until:",
+    "myAccount": "My Account",
+    "viewProfile": "View Profile"
+  },
+  "about": {
+    "title": "LSPP 306 - Tiga Puluh Juni",
+    "mainTitle": "About Us",
+    "desc1": "LSPP 306 (Tiga Puluh Juni) is a professional certification body committed to improving competency standards and worker professionalism in its field. We serve as a strategic partner for individuals and organizations seeking to ensure qualifications and expertise aligned with applicable national standards.",
+    "desc2": "With over a decade of experience, LSPP 306 has served thousands of certification participants from various industry sectors. We operate under official license and are recognized by the National Professional Certification Board (BNSP), ensuring that every certificate we issue has high recognition value in both national and international job markets.",
+    "desc3": "We believe that certified competence is the foundation of solid careers and highly competitive organizations. LSPP 306 remains committed to providing professional, objective, and trustworthy competency testing services to all stakeholders.",
+    "visionMission": {
+      "vision": "Vision",
+      "mission": "Mission"
+    },
+    "structure": {
+      "title": "Organizational Structure",
+      "boardOfExperts": "Board of Experts",
+      "executiveLeadership": "Executive Leadership",
+      "operationsAdmin": "Operations and Administration"
+    },
+    "position": "Position",
+    "tukSection": {
+      "title": "Testing Centers",
+      "subtitle": "LSPP 306 Testing Center Locations",
+      "locations": [
+        {
+          "name": "Mandiri Testing Center — South Jakarta",
+          "address": "Jl. Sudirman No. 45, Kebayoran Baru, South Jakarta",
+          "schedule": "Monday - Friday, 08.00 - 17.00 WIB",
+          "code": "TUK-001"
+        },
+        {
+          "name": "Occasional Testing Center — Bandung",
+          "address": "Jl. Asia Afrika No. 12, Sumur Bandung, Bandung",
+          "schedule": "Monday - Saturday, 08.00 - 16.00 WIB",
+          "code": "TUK-002"
+        },
+        {
+          "name": "Mandiri Testing Center — Surabaya",
+          "address": "Jl. Pemuda No. 31, Genteng, Surabaya",
+          "schedule": "Monday - Friday, 08.00 - 17.00 WIB",
+          "code": "TUK-003"
+        },
+        {
+          "name": "Occasional Testing Center — Medan",
+          "address": "Jl. Gatot Subroto No. 78, Medan Petisah, Medan",
+          "schedule": "Monday - Friday, 08.00 - 17.00 WIB",
+          "code": "TUK-004"
+        },
+        {
+          "name": "Occasional Testing Center — Yogyakarta",
+          "address": "Jl. Malioboro No. 55, Gedongtengen, Yogyakarta",
+          "schedule": "Operational schedule will be announced",
+          "code": "TUK-005"
+        },
+        {
+          "name": "Additional Testing Center — Bali",
+          "address": "Jl. Legian, Jl. By Pass Ngurah Rai, Jl. Tol Bali Mandara, and culinary centers at Jl. Dewi Sri",
+          "schedule": "Monday - Friday, 08.00 - 17.00 WIB",
+          "code": "TUK-006"
+        }
+      ]
+    },
+    "assessorSection": {
+      "title": "Assessors",
+      "subtitle": "List of Competency Assessors",
+      "searchPlaceholder": "Search Assessor..."
+    },
+    "certificateHoldersSection": {
+      "title": "Certificate Holders List"
+    }
+  },
+  "news": {
+    "title": "News",
+    "searchPlaceholder": "Search Certification...",
+    "sortBy": "Sort By",
+    "newest": "Newest",
+    "oldest": "Oldest",
+    "mostViewed": "Most Viewed",
+    "category": "Category",
+    "relatedNews": "Related News",
+    "author": "LSPP Team"
+  },
+  "calendar": {
+    "title": "Calendar",
+    "scheduledCertifications": "Scheduled Certifications"
+  },
+  "gallery": {
+    "title": "Gallery",
+    "album": "Album",
+    "newest": "Newest",
+    "oldest": "Oldest",
+    "sortBy": "Sort By"
+  },
+  "faq": {
+    "title": "FAQ",
+    "frequentlyAsked": "Frequently Asked Questions"
+  },
+  "notification": {
+    "title": "Notifications",
+    "subtitle": "Information center for certifications and your account updates"
+  },
+  "certification": {
+    "schemes": {
+      "title": "Certification Schemes",
+      "subtitle": "Choose various recognized national competency certification schemes.",
+      "sortBy": "Sort By",
+      "newest": "Newest",
+      "oldest": "Oldest",
+      "mostViewed": "Most Viewed",
+      "category": "Category"
+    },
+    "flow": {
+      "title": "Certification Flow",
+      "subtitle": "Understand the steps in the application process until the issuance of your competency certification.",
+      "steps": [
+        {
+          "title": "Submit Certification Application",
+          "description": "Prospective test taker submits application to take certification and selects scheme, completing required documents"
+        },
+        {
+          "title": "Document Verification and Validation",
+          "description": "LSP admin verifies and validates required documents. If deemed acceptable, test taker will be scheduled for competency testing."
+        },
+        {
+          "title": "Assessment Fee Payment",
+          "description": "Prospective test taker makes payment. Proof of payment is submitted to Admin."
+        },
+        {
+          "title": "Competency Assessment Implementation",
+          "description": "Assessor conducts competency assessment/testing"
+        },
+        {
+          "title": "Certification Decision Determination",
+          "description": "Assessor submits assessment results to LSP. LSP reviews and objectively determines if test taker is competent or not in documented manner."
+        },
+        {
+          "title": "Competency Certification Issuance",
+          "description": "For test takers deemed competent, LSP issues official competency certificate recognized by BNSP"
+        }
+      ]
+    },
+    "tracking": {
+      "title": "Process Tracking",
+      "subtitle": "Please select a Certification to view detailed status of your application progress.",
+      "applicationReceived": "Application Received",
+      "completed": "Completed",
+      "submitted": "Submitted",
+      "batch": "Batch",
+      "tuk": "Testing Center",
+      "timeline": {
+        "applicationTitle": "Application Submission",
+        "applicationStatus": "Awaiting Approval",
+        "registrationTitle": "Registration Received",
+        "registrationStatus": "Documents complete and valid.",
+        "schedulingTitle": "Assessment Scheduling",
+        "schedulingStatus": "Assessment to be conducted on April 12, 2026.",
+        "assessmentTitle": "Competency Assessment",
+        "assessmentStatus": "Theory and practical testing completed.",
+        "announcementTitle": "Results Announcement",
+        "announcementStatus": "Declared COMPETENT. Certificate is being processed."
+      }
+    },
+    "verify": {
+      "title": "Verify E-Certificate",
+      "subtitle": "Ensure the authenticity of your certificate by entering the registration number shown on the document.",
+      "certificateNumber": "Certificate Number:",
+      "numberPlaceholder": "Example: LSPP306-2024-001234",
+      "verifyBtn": "Verify",
+      "validResult": "Certificate is valid and registered",
+      "certificateHolderName": "Certificate Holder Name",
+      "certificationScheme": "Certification Scheme",
+      "testingCenter": "Testing Center",
+      "issueDate": "Issue Date",
+      "validUntil": "Valid Until",
+      "bnspRegNumber": "BNSP Registration Number",
+      "status": "Status",
+      "active": "Active"
+    },
+    "detail": {
+      "price": "Price",
+      "saveBtn": "Save Certification",
+      "registerBtn": "Register Certification",
+      "relatedAssessments": "Related Assessments"
+    },
+    "register": {
+      "breadcrumb1": "Certification Scheme",
+      "description": "Submit certification to validate your skills, communication, and service standards in the food & beverage field.",
+      "draftSaved": "* Draft Saved",
+      "uploadKTP": "Upload Your ID Card",
+      "uploadPhoto": "Upload Your Photo",
+      "uploadDiploma": "Upload Your Latest Diploma",
+      "uploadCV": "Upload Your CV",
+      "uploadPortfolio": "Upload Your Portfolio",
+      "submitBtn": "Submit"
+    }
+  },
+  "common": {
+    "signIn": "Sign In",
+    "signUp": "Sign Up",
+    "logout": "Sign Out",
+    "email": "Email",
+    "password": "Password",
+    "name": "Name",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "category": "Category",
+    "status": "Status",
+    "date": "Date",
+    "action": "Action",
+    "edit": "Edit",
+    "delete": "Delete",
+    "save": "Save",
+    "cancel": "Cancel",
+    "close": "Close",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "info": "Information"
+  },
+  "footer": {
+    "contactUs": "Contact Us"
+  }
+}
