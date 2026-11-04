@@ -1,65 +1,26 @@
 "use client";
 
-import { useState, useEffect, useRef, use } from "react";
+import { useState, useEffect, useRef, use, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { beritahuNotifikasiBerubah } from "@/hooks/use-notifikasi-belum-dibaca";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/Footer";
 import FloatingContact from "@/components/FloatingContact";
-import { Bell } from "lucide-react";
+import { Bell, CheckCheck, Loader2 } from "lucide-react";
 import { getDictionary } from "../dictionaries";
+import { useAuth } from "@/lib/auth-context";
+import {
+  bacaNotifikasi,
+  bacaSemuaNotifikasi,
+  formatTanggal,
+  getNotifikasi,
+  urlWebsite,
+  type NotifikasiAsesi,
+} from "@/service/profil.service";
 
 interface NotifikasiPageProps {
   params: Promise<{ lang: "id" | "en" }>;
 }
-
-const NOTIFICATIONS_DATA = [
-  {
-    id: 1,
-    message: "Pengajuan assesmen ",
-    boldText: "Sertifikasi Profesi Waiter (Pelayan Restoran)",
-    suffix:
-      " anda disetujui! Silahkan melakukan pembayaran untuk melanjutkan proses.",
-  },
-  {
-    id: 2,
-    message:
-      "E-Sertifikat anda akan segera Kadaluarsa! silahkan melakukan perpanjangan sertifikat anda",
-    boldText: "",
-    suffix: "",
-  },
-  {
-    id: 3,
-    message: "Assesmen ",
-    boldText: "Sertifikasi Profesi Waiter (Pelayan Restoran)",
-    suffix: " akan dilaksanakan 3 Hari Lagi!",
-  },
-  {
-    id: 4,
-    message: "Pembayaran asesmen ",
-    boldText: "Sertifikasi Profesi Resepsionis Hotel",
-    suffix:
-      " anda telah berhasil dikonfirmasi. Silahkan menunggu jadwal asesmen.",
-  },
-  {
-    id: 5,
-    message: "Tagihan pembayaran ",
-    boldText: "Sertifikasi Profesi Barista Profesional",
-    suffix:
-      " anda belum diselesaikan. Segera lakukan pembayaran sebelum batas waktu.",
-  },
-  {
-    id: 6,
-    message:
-      "E-Sertifikat anda akan segera Kadaluarsa! silahkan melakukan perpanjangan sertifikat anda",
-    boldText: "",
-    suffix: "",
-  },
-  {
-    id: 7,
-    message: "Pembaruan sistem selesai dilakukan. Cek fitur terbaru kami.",
-    boldText: "",
-    suffix: "",
-  },
-];
 
 export default function NotifikasiPage({ params }: NotifikasiPageProps) {
   const resolvedParams = use(params);
@@ -67,6 +28,61 @@ export default function NotifikasiPage({ params }: NotifikasiPageProps) {
   const [dict, setDict] = useState<any>(null);
   const [scrollPercentage, setScrollPercentage] = useState(0);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+  const { token, isLoggedIn, loading: authLoading } = useAuth();
+  const [daftar, setDaftar] = useState<NotifikasiAsesi[]>([]);
+  const [halaman, setHalaman] = useState({ sekarang: 0, terakhir: 1 });
+  const [belumDibaca, setBelumDibaca] = useState(0);
+  const [memuat, setMemuat] = useState(false);
+  const [galat, setGalat] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!authLoading && !isLoggedIn) router.push(`/${lang}/login`);
+  }, [authLoading, isLoggedIn, router, lang]);
+
+  const muat = useCallback(
+    async (page: number) => {
+      if (!token) return;
+      setMemuat(true);
+      try {
+        const res = await getNotifikasi(token, { page, perPage: 15 });
+        setDaftar((lama) => (page === 1 ? res.data : [...lama, ...res.data]));
+        setHalaman({ sekarang: res.meta.current_page, terakhir: res.meta.last_page });
+        setBelumDibaca(res.meta.belum_dibaca);
+        setGalat(null);
+      } catch (err) {
+        setGalat((err as Error).message);
+      } finally {
+        setMemuat(false);
+      }
+    },
+    [token],
+  );
+
+  useEffect(() => {
+    muat(1);
+  }, [muat]);
+
+  const bukaNotifikasi = async (item: NotifikasiAsesi) => {
+    if (!token) return;
+    if (!item.dibaca) {
+      setDaftar((lama) => lama.map((n) => (n.id === item.id ? { ...n, dibaca: true } : n)));
+      setBelumDibaca((n) => Math.max(0, n - 1));
+      bacaNotifikasi(token, item.id).then(beritahuNotifikasiBerubah).catch(() => {});
+    }
+    if (item.url) {
+      const tujuan = urlWebsite(item.url, lang);
+      if (/^https?:\/\//.test(tujuan)) window.open(tujuan, "_blank", "noopener,noreferrer");
+      else router.push(tujuan);
+    }
+  };
+
+  const tandaiSemua = async () => {
+    if (!token || belumDibaca === 0) return;
+    setDaftar((lama) => lama.map((n) => ({ ...n, dibaca: true })));
+    setBelumDibaca(0);
+    await bacaSemuaNotifikasi(token).then(beritahuNotifikasiBerubah).catch(() => muat(1));
+  };
 
   useEffect(() => {
     getDictionary(lang).then((data) => {
@@ -82,10 +98,11 @@ export default function NotifikasiPage({ params }: NotifikasiPageProps) {
       const percentage =
         totalScrollable > 0 ? (scrollTop / totalScrollable) * 100 : 0;
       setScrollPercentage(percentage);
+      if (percentage > 90 && !memuat && halaman.sekarang < halaman.terakhir) muat(halaman.sekarang + 1);
     }
   };
 
-  if (!dict) {
+  if (!dict || authLoading || !isLoggedIn) {
     return <div className="min-h-screen bg-[#F9FBF8]" />;
   }
 
@@ -108,7 +125,17 @@ export default function NotifikasiPage({ params }: NotifikasiPageProps) {
               Pusat informasi sertifikasi dan pembaruan akun Anda
             </p>
           </div>
+          {belumDibaca > 0 && (
+            <button
+              type="button"
+              onClick={tandaiSemua}
+              className="ml-auto inline-flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold text-[#78B51A] border border-[#8CC63F] hover:bg-[#8CC63F]/10 transition-colors"
+            >
+              <CheckCheck size={16} /> Tandai semua dibaca ({belumDibaca})
+            </button>
+          )}
         </div>
+        {galat && <p className="mb-6 md:ml-16 rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">{galat}</p>}
 
         <div className="relative flex gap-8 md:gap-12 items-start">
           <div className="hidden md:flex flex-col items-center sticky top-0 h-fit pt-2">
@@ -127,24 +154,60 @@ export default function NotifikasiPage({ params }: NotifikasiPageProps) {
             onScroll={handleScroll}
             className="flex-1 space-y-4 max-h-[600px] overflow-y-auto pr-4 no-scrollbar scroll-smooth"
           >
-            {NOTIFICATIONS_DATA.map((item) => (
+            {daftar.length === 0 && !memuat && (
+              <p className="text-gray-400 text-sm">Belum ada notifikasi.</p>
+            )}
+            {daftar.map((item) => (
               <div
                 key={item.id}
-                className="group relative bg-white rounded-2xl border border-gray-100 shadow-[0_10px_30px_rgba(0,0,0,0.02)] p-6 md:p-8 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 cursor-pointer overflow-hidden"
+                role="button"
+                tabIndex={0}
+                onClick={() => bukaNotifikasi(item)}
+                onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && bukaNotifikasi(item)}
+                className={`group relative rounded-2xl border border-gray-100 shadow-[0_10px_30px_rgba(0,0,0,0.02)] p-6 md:p-8 transition-all duration-300 hover:shadow-md hover:-translate-y-0.5 cursor-pointer overflow-hidden ${
+                  item.dibaca ? "bg-white" : "bg-[#F4F9EC]"
+                }`}
               >
-                <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-gray-50 group-hover:bg-[#8CC63F] transition-colors duration-300" />
+                <div
+                  className={`absolute left-0 top-0 bottom-0 w-1.5 transition-colors duration-300 ${
+                    item.dibaca ? "bg-gray-50 group-hover:bg-[#8CC63F]" : "bg-[#8CC63F]"
+                  }`}
+                />
 
-                <p className="text-gray-500 leading-relaxed text-sm md:text-base">
-                  {item.message}
-                  {item.boldText && (
-                    <span className="font-bold text-gray-800 mx-1">
-                      {item.boldText}
-                    </span>
-                  )}
-                  {item.suffix}
-                </p>
+                <div className="flex items-start gap-3">
+                  {!item.dibaca && <span className="h-2 w-2 rounded-full bg-red-500 mt-2 flex-shrink-0" />}
+                  <div className="flex-1">
+                    <p className="font-semibold text-gray-800 text-sm md:text-base">{item.judul}</p>
+                    <p className="text-gray-500 leading-relaxed text-sm md:text-base mt-1">
+                      {item.skema && item.pesan.includes(item.skema) ? (
+                        <>
+                          {item.pesan.slice(0, item.pesan.indexOf(item.skema))}
+                          <span className="font-bold text-gray-800">{item.skema}</span>
+                          {item.pesan.slice(item.pesan.indexOf(item.skema) + item.skema.length)}
+                        </>
+                      ) : (
+                        item.pesan
+                      )}
+                    </p>
+                    <p className="text-xs text-gray-400 mt-2">{formatTanggal(item.dibuat_at, lang)}</p>
+                  </div>
+                </div>
               </div>
             ))}
+            {memuat && (
+              <div className="flex justify-center py-4">
+                <Loader2 className="h-6 w-6 animate-spin text-[#8CC63F]" />
+              </div>
+            )}
+            {!memuat && halaman.sekarang < halaman.terakhir && (
+              <button
+                type="button"
+                onClick={() => muat(halaman.sekarang + 1)}
+                className="w-full py-3 text-sm font-semibold text-[#78B51A] hover:underline"
+              >
+                Muat lebih banyak
+              </button>
+            )}
           </div>
         </div>
       </main>

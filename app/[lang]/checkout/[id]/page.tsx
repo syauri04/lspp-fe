@@ -5,7 +5,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/Footer";
-import { ChevronLeft, CalendarDays, CheckCircle2 } from "lucide-react";
+import { ChevronLeft, CalendarDays, CheckCircle2, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getDictionary } from "@/app/[lang]/dictionaries";
 import { useAuth } from "@/lib/auth-context";
@@ -41,33 +41,17 @@ interface DokuPaymentResponse {
   payment_url: string;
 }
 
-type PaymentMethodKey =
-  | "alfamart"
-  | "indomaret"
-  | "dana"
-  | "ovo"
-  | "shopeepay"
-  | "qris";
-
-const PAYMENT_METHODS: {
-  key: PaymentMethodKey;
-  label: string;
-  logo: string;
-}[] = [
-  { key: "alfamart", label: "Alfamart", logo: "/images/payment/alfamart.png" },
-  {
-    key: "indomaret",
-    label: "Indomaret",
-    logo: "/images/payment/indomaret.png",
-  },
-  { key: "dana", label: "DANA", logo: "/images/payment/dana.png" },
-  { key: "ovo", label: "OVO", logo: "/images/payment/ovo.png" },
-  {
-    key: "shopeepay",
-    label: "ShopeePay",
-    logo: "/images/payment/shopeepay.png",
-  },
-  { key: "qris", label: "QRIS", logo: "/images/payment/qris.png" },
+/**
+ * Logo metode yang diterima — HANYA informasi. Metode dipilih asesi di halaman pembayaran DOKU Checkout
+ * (BE tidak membatasi payment_method_types); metode yang dipakai tercatat dari webhook DOKU.
+ */
+const METODE_DITERIMA: { label: string; logo: string }[] = [
+  { label: "QRIS", logo: "/images/payment/qris.png" },
+  { label: "DANA", logo: "/images/payment/dana.png" },
+  { label: "OVO", logo: "/images/payment/ovo.png" },
+  { label: "ShopeePay", logo: "/images/payment/shopeepay.png" },
+  { label: "Alfamart", logo: "/images/payment/alfamart.png" },
+  { label: "Indomaret", logo: "/images/payment/indomaret.png" },
 ];
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL;
@@ -104,9 +88,6 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
   const [dict, setDict] = useState<any>(null);
   const [detail, setDetail] = useState<CheckoutDetail | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const [selectedMethod, setSelectedMethod] = useState<PaymentMethodKey | null>(
-    null,
-  );
   const [processing, setProcessing] = useState(false);
 
   // Load dictionary (i18n)
@@ -172,22 +153,6 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
       return;
     }
 
-    if (!selectedMethod) {
-      toast({
-        variant: "destructive",
-        title:
-          lang === "id" ? "Pilih Metode Pembayaran" : "Select Payment Method",
-        description: (
-          <span className="text-white font-bold">
-            {lang === "id"
-              ? "Silahkan pilih metode pembayaran terlebih dahulu."
-              : "Please select a payment method first."}
-          </span>
-        ),
-      });
-      return;
-    }
-
     if (!API_BASE_URL) return;
 
     try {
@@ -198,17 +163,19 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
           method: "POST",
           headers: {
             Accept: "application/json",
-            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
-          body: JSON.stringify({ metode_pembayaran: selectedMethod }),
         },
       );
 
-      const json: DokuPaymentResponse = await res.json();
+      let json: Partial<DokuPaymentResponse> & { message?: string } = {};
+      try {
+        json = await res.json();
+      } catch {}
 
       if (!res.ok || !json.payment_url) {
-        throw new Error("Gagal membuat link pembayaran");
+        // Pesan dari BE, mis. "Layanan pembayaran sedang tidak dapat dihubungi..." (503).
+        throw new Error(json.message || "Gagal membuat link pembayaran");
       }
 
       // DOKU hosted payment page: WAJIB full redirect, bukan popup.
@@ -334,32 +301,36 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
           <div className="bg-white rounded-[2rem] p-8 shadow-xl">
             <h2 className="text-xl font-bold text-gray-900 mb-1">Checkout</h2>
             <p className="text-sm text-gray-400 mb-6">
-              Silahkan pilih metode pembayaran
+              Pembayaran diproses melalui DOKU
             </p>
 
-            <div className="grid grid-cols-2 gap-4">
-              {PAYMENT_METHODS.map((method) => (
-                <button
-                  key={method.key}
-                  type="button"
-                  onClick={() => setSelectedMethod(method.key)}
-                  className={`flex items-center justify-center rounded-xl border-2 px-4 py-4 transition-all ${
-                    selectedMethod === method.key
-                      ? "border-[#82B124] bg-[#82B124]/5"
-                      : "border-gray-100 hover:border-gray-200"
-                  }`}
+            <ol className="space-y-3 text-sm text-gray-600 mb-6 list-decimal list-inside">
+              <li>
+                Klik <span className="font-semibold text-gray-900">Bayar Sekarang</span>.
+              </li>
+              <li>Anda akan diarahkan ke halaman pembayaran DOKU.</li>
+              <li>Pilih metode pembayaran dan selesaikan pembayaran di sana.</li>
+              <li>Status pendaftaran diperbarui otomatis setelah pembayaran berhasil.</li>
+            </ol>
+
+            <p className="text-xs font-medium text-gray-500 mb-3">Metode pembayaran yang tersedia, antara lain:</p>
+            <div className="grid grid-cols-3 gap-3">
+              {METODE_DITERIMA.map((metode) => (
+                <div
+                  key={metode.label}
+                  className="flex items-center justify-center rounded-xl border border-gray-100 px-3 py-3"
                 >
-                  <div className="relative w-full h-8">
-                    <Image
-                      src={method.logo}
-                      alt={method.label}
-                      fill
-                      className="object-contain"
-                    />
+                  <div className="relative w-full h-6">
+                    <Image src={metode.logo} alt={metode.label} fill className="object-contain" />
                   </div>
-                </button>
+                </div>
               ))}
             </div>
+
+            <p className="flex items-center gap-2 text-xs text-gray-400 mt-6">
+              <ShieldCheck size={16} className="text-[#82B124] shrink-0" />
+              Transaksi aman dan terenkripsi oleh DOKU.
+            </p>
           </div>
 
           <div className="bg-white rounded-[2rem] p-8 shadow-xl flex flex-col">
@@ -372,29 +343,6 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                 <span className="text-gray-500">Kode Transaksi</span>
                 <span className="font-medium text-gray-900">
                   : {detail.kode_transaksi}
-                </span>
-              </div>
-
-              <div className="flex justify-between items-center">
-                <span className="text-gray-500">Bayar Dengan</span>
-                <span>
-                  {selectedMethod ? (
-                    <div className="relative w-16 h-6">
-                      <Image
-                        src={
-                          PAYMENT_METHODS.find((m) => m.key === selectedMethod)!
-                            .logo
-                        }
-                        alt={selectedMethod}
-                        fill
-                        className="object-contain"
-                      />
-                    </div>
-                  ) : (
-                    <span className="text-gray-400 italic text-xs">
-                      Belum dipilih
-                    </span>
-                  )}
                 </span>
               </div>
 

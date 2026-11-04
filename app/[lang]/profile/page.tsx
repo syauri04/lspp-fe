@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useEffect, use, useRef } from "react";
+import { useState, useEffect, use, useRef, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import {
   MapPin,
   Phone,
@@ -21,6 +22,20 @@ import { getDictionary } from "../dictionaries";
 import { useAuth } from "@/lib/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { updateProfile, changePassword } from "@/service/auth.service";
+import {
+  bacaNotifikasi,
+  formatTanggal,
+  getDetailPendaftaran,
+  getNotifikasi,
+  getPendaftaranSaya,
+  judulSkema,
+  urlWebsite,
+  type KelompokPendaftaran,
+  type NotifikasiAsesi,
+  type PendaftaranAsesi,
+  type PendaftaranAsesiDetail,
+} from "@/service/profil.service";
+import { beritahuNotifikasiBerubah } from "@/hooks/use-notifikasi-belum-dibaca";
 import Navigation from "@/components/navigation";
 import Footer from "@/components/Footer";
 import FloatingContact from "@/components/FloatingContact";
@@ -29,153 +44,40 @@ interface ProfilePageProps {
   params: Promise<{ lang: "id" | "en" }>;
 }
 
-const skemaData = [
-  {
-    id: 1,
-    title: "Tour Leader Perjalanan Wisata Domestik",
-    expiryDate: "13 Januari 2028",
-    image: "/images/skema/skema1.png",
-  },
-  {
-    id: 2,
-    title: "Pemandu Wisata Alam Petualangan",
-    expiryDate: "13 Januari 2028",
-    image: "/images/skema/skema2.png",
-  },
-  {
-    id: 3,
-    title: "Resepsionis Hotel Bintang",
-    expiryDate: "13 Januari 2028",
-    image: "/images/skema/skema3.png",
-  },
-];
-const notifikasiData = [
-  {
-    id: 1,
-    isRead: false,
-    message: (
-      <>
-        Pengajuan assesmen{" "}
-        <strong className="font-semibold text-gray-900">
-          Sertifikasi Profesi Waiter (Pelayan Restoran)
-        </strong>{" "}
-        anda disetujui! Silahkan melakukan pembayaran untuk melanjutkan proses
-        sertifikasi
-      </>
-    ),
-  },
-  {
-    id: 2,
-    isRead: true,
-    message:
-      "E-Sertifikat anda akan segera Kadaluarsa! silahkan melakukan perpanjangan sertifikat anda",
-  },
-  {
-    id: 3,
-    isRead: true,
-    message: (
-      <>
-        Assesmen{" "}
-        <strong className="font-semibold text-gray-900">
-          Sertifikasi Profesi Waiter (Pelayan Restoran)
-        </strong>{" "}
-        akan dilaksanakan 3 Hari Lagi!
-      </>
-    ),
-  },
-];
+const GAMBAR_CADANGAN = "/images/sertifikasi/serti-1.png";
 
-const sertifikasiData = [
-  {
-    id: 1,
-    title: "Sertifikasi Housekeeping",
-    date: "1 April 2026",
-    status: "selesai",
-    image: "/images/sertifikasi/serti-1.png",
-    batch: "Batch 1 / 2026",
-    tuk: "TUK Sewaktu - Yogyakarta",
-    detailDate: "12 April 2026",
-    timeline: [
-      {
-        title: "Pengajuan Sertifikasi",
-        date: "25 Maret 2026",
-        desc: "Menunggu Persetujuan",
-      },
-      {
-        title: "Pendaftaran diterima",
-        date: "30 Maret 2026",
-        desc: "Berkas lengkap dan valid.",
-      },
-      {
-        title: "Penjadwalan asesmen",
-        date: "2 April 2026",
-        desc: "Asesmen dilaksanakan 12 April 2026.",
-      },
-      {
-        title: "Asesmen kompetensi",
-        date: "12 April 2026",
-        desc: "Uji teori dan praktik selesai.",
-      },
-      {
-        title: "Pengumuman hasil",
-        date: "15 April 2026",
-        desc: "Dinyatakan KOMPETEN. Sertifikat sedang diproses.",
-      },
-    ],
-  },
-  {
-    id: 2,
-    title: "Sertifikasi Resepsionis",
-    date: "1 April 2026",
-    status: "pengajuan_diterima",
-    image: "/images/sertifikasi/serti-2.png",
-    batch: "Batch 2 / 2026",
-    tuk: "TUK Sewaktu - Yogyakarta",
-    detailDate: "-",
-    timeline: [
-      {
-        title: "Pengajuan Sertifikasi",
-        date: "1 April 2026",
-        desc: "Pengajuan diterima, menunggu jadwal asesmen.",
-      },
-    ],
-  },
-  {
-    id: 3,
-    title: "Sertifikasi Housekeeping",
-    date: "1 April 2026",
-    status: "diajukan",
-    image: "/images/sertifikasi/serti-1.png",
-    batch: "Batch 3 / 2026",
-    tuk: "TUK Sewaktu - Yogyakarta",
-    detailDate: "-",
-    timeline: [
-      {
-        title: "Pengajuan Sertifikasi",
-        date: "5 April 2026",
-        desc: "Menunggu Persetujuan",
-      },
-    ],
-  },
-];
-
-const filterOptions = [
-  { key: "pengajuan_diterima", label: "Pengajuan Diterima" },
-  { key: "selesai", label: "Selesai" },
+const filterOptions: { key: KelompokPendaftaran; label: string }[] = [
   { key: "diajukan", label: "Diajukan" },
+  { key: "diproses", label: "Diproses" },
+  { key: "selesai", label: "Selesai" },
+  { key: "ditolak", label: "Ditolak/Batal" },
 ];
 
-const statusBadgeStyle: Record<string, string> = {
+const statusBadgeStyle: Record<KelompokPendaftaran, string> = {
   selesai: "bg-[#8CC63F] text-white",
-  pengajuan_diterima: "bg-white text-[#78B51A] border border-[#8CC63F]",
+  diproses: "bg-white text-[#78B51A] border border-[#8CC63F]",
   diajukan: "bg-gray-100 text-gray-500 border border-gray-200",
+  ditolak: "bg-red-50 text-red-600 border border-red-200",
 };
 
-const statusLabel: Record<string, string> = {
-  selesai: "Selesai",
-  pengajuan_diterima: "Pengajuan diterima",
-  diajukan: "Diajukan",
+const labelHasil: Record<string, string> = {
+  kompeten: "Kompeten",
+  belum_kompeten: "Belum Kompeten",
 };
+
+/** Pesan notifikasi dengan nama skema ditebalkan (seperti desain). */
+function PesanNotifikasi({ notif }: { notif: NotifikasiAsesi }) {
+  const { pesan, skema } = notif;
+  const posisi = skema ? pesan.indexOf(skema) : -1;
+  if (!skema || posisi < 0) return <>{pesan}</>;
+  return (
+    <>
+      {pesan.slice(0, posisi)}
+      <strong className="font-semibold text-gray-900">{skema}</strong>
+      {pesan.slice(posisi + skema.length)}
+    </>
+  );
+}
 
 export default function ProfilePage({ params }: ProfilePageProps) {
   const { lang } = use(params);
@@ -196,14 +98,18 @@ export default function ProfilePage({ params }: ProfilePageProps) {
   const [isEditingPassword, setIsEditingPassword] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
-  const [activeFilter, setActiveFilter] = useState<String>("selesai");
-  const [selectedSertifikasi, setSelectedSertifikasi] = useState<
-    (typeof sertifikasiData)[number] | null
-  >(sertifikasiData[0] || null);
+  const [activeFilter, setActiveFilter] = useState<KelompokPendaftaran | null>(null);
+  const [jumlah, setJumlah] = useState<Record<KelompokPendaftaran, number> | null>(null);
+  const [daftar, setDaftar] = useState<PendaftaranAsesi[]>([]);
+  const [memuatDaftar, setMemuatDaftar] = useState(false);
+  const [selectedKode, setSelectedKode] = useState<string | null>(null);
+  const [detail, setDetail] = useState<PendaftaranAsesiDetail | null>(null);
+  const [memuatDetail, setMemuatDetail] = useState(false);
+  const [skemaDiikuti, setSkemaDiikuti] = useState<PendaftaranAsesi[] | null>(null);
+  const [notifikasi, setNotifikasi] = useState<NotifikasiAsesi[] | null>(null);
+  const [galatData, setGalatData] = useState<string | null>(null);
 
-  const filteredSertifikasi = sertifikasiData.filter(
-    (item) => item.status === activeFilter,
-  );
+  const selectedSertifikasi = daftar.find((d) => d.kode_pendaftaran === selectedKode) ?? null;
 
   const [formData, setFormData] = useState({
     name: "",
@@ -232,13 +138,82 @@ export default function ProfilePage({ params }: ProfilePageProps) {
     }
   }, [user]);
 
+  // Data awal: jumlah per tab (pilih tab default), skema yang diikuti (selesai), 3 notifikasi terbaru.
   useEffect(() => {
-    if (filteredSertifikasi.length > 0) {
-      setSelectedSertifikasi(filteredSertifikasi[0]);
-    } else {
-      setSelectedSertifikasi(null);
+    if (!token) return;
+    let batal = false;
+    Promise.all([
+      getPendaftaranSaya(token, { perPage: 1 }),
+      getPendaftaranSaya(token, { kelompok: "selesai", perPage: 20 }),
+      getNotifikasi(token, { perPage: 3 }),
+    ])
+      .then(([ringkas, selesai, notif]) => {
+        if (batal) return;
+        const j = ringkas.meta.jumlah;
+        setJumlah(j);
+        setActiveFilter(
+          j.diproses > 0 ? "diproses" : (filterOptions.find((o) => j[o.key] > 0)?.key ?? "diajukan"),
+        );
+        setSkemaDiikuti(selesai.data);
+        setNotifikasi(notif.data);
+      })
+      .catch((err: Error) => !batal && setGalatData(err.message));
+    return () => {
+      batal = true;
+    };
+  }, [token]);
+
+  // Daftar sertifikasi per tab.
+  useEffect(() => {
+    if (!token || !activeFilter) return;
+    let batal = false;
+    setMemuatDaftar(true);
+    getPendaftaranSaya(token, { kelompok: activeFilter, perPage: 20 })
+      .then((res) => {
+        if (batal) return;
+        setDaftar(res.data);
+        setSelectedKode(res.data[0]?.kode_pendaftaran ?? null);
+      })
+      .catch((err: Error) => !batal && setGalatData(err.message))
+      .finally(() => !batal && setMemuatDaftar(false));
+    return () => {
+      batal = true;
+    };
+  }, [token, activeFilter]);
+
+  // Detail (timeline) sertifikasi terpilih.
+  useEffect(() => {
+    if (!token || !selectedKode) {
+      setDetail(null);
+      return;
     }
-  }, [activeFilter]);
+    let batal = false;
+    setMemuatDetail(true);
+    getDetailPendaftaran(token, selectedKode)
+      .then((res) => !batal && setDetail(res))
+      .catch(() => !batal && setDetail(null))
+      .finally(() => !batal && setMemuatDetail(false));
+    return () => {
+      batal = true;
+    };
+  }, [token, selectedKode]);
+
+  /** Klik notifikasi: tandai dibaca lalu buka tautannya (bila ada). */
+  const bukaNotifikasi = useCallback(
+    async (notif: NotifikasiAsesi) => {
+      if (!token) return;
+      if (!notif.dibaca) {
+        setNotifikasi((daftarLama) => daftarLama?.map((n) => (n.id === notif.id ? { ...n, dibaca: true } : n)) ?? null);
+        bacaNotifikasi(token, notif.id).then(beritahuNotifikasiBerubah).catch(() => {});
+      }
+      if (notif.url) {
+        const tujuan = urlWebsite(notif.url, lang);
+        if (/^https?:\/\//.test(tujuan)) window.open(tujuan, "_blank", "noopener,noreferrer");
+        else router.push(tujuan);
+      }
+    },
+    [token, lang, router],
+  );
 
   useEffect(() => {
     if (!authLoading && !isLoggedIn) {
@@ -579,48 +554,80 @@ export default function ProfilePage({ params }: ProfilePageProps) {
         </div>
       )}
 
+      {galatData && (
+        <div className="max-w-7xl mx-auto px-6 md:px-16 lg:px-24 mt-6">
+          <p className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">{galatData}</p>
+        </div>
+      )}
+
       <section className="py-20 bg-gray-50">
         <div className="max-w-7xl mx-auto px-6 md:px-16 lg:px-24">
           <h2 className="text-3xl font-bold text-gray-900 mb-12">
             {dict.profile.schemesFollowed}
           </h2>
 
-          <div className="relative -mx-6 md:-mx-16 lg:-mx-24">
-            <div className="flex gap-6 overflow-x-auto pb-4 px-6 md:px-16 lg:px-24 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
-              {skemaData.map((skema) => (
-                <div
-                  key={skema.id}
-                  className="bg-white rounded-2xl shadow-md p-4 flex flex-col flex-shrink-0 w-[280px] snap-start"
-                >
-                  <div className="w-full h-40 relative flex-shrink-0">
-                    <Image
-                      src={skema.image}
-                      alt={skema.title}
-                      fill
-                      className="object-cover rounded-xl"
-                    />
-                  </div>
-                  <div className="flex-1 flex flex-col justify-between mt-4">
-                    <div>
-                      <h3 className="text-base font-bold text-gray-900 leading-snug line-clamp-2">
-                        {skema.title}
-                      </h3>
-                      <p className="text-gray-500 text-sm mt-1">
-                        {dict.profile.validUntil} {skema.expiryDate}
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      className="mt-4 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#78B51A] text-white rounded-lg hover:bg-[#669a16] transition-colors font-semibold text-sm w-full"
-                    >
-                      <Download className="h-4 w-4" />{" "}
-                      {dict.profile.downloadCertificate}
-                    </button>
-                  </div>
-                </div>
-              ))}
+          {skemaDiikuti === null ? (
+            <div className="flex justify-center py-10">
+              <Loader2 className="h-8 w-8 animate-spin text-[#78B51A]" />
             </div>
-          </div>
+          ) : skemaDiikuti.length === 0 ? (
+            <p className="text-gray-500">
+              Belum ada skema yang selesai diikuti. Skema akan tampil di sini setelah asesmen selesai.
+            </p>
+          ) : (
+            <div className="relative -mx-6 md:-mx-16 lg:-mx-24">
+              <div className="flex gap-6 overflow-x-auto pb-4 px-6 md:px-16 lg:px-24 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+                {skemaDiikuti.map((skema) => {
+                  const hasil = skema.asesmen?.hasil;
+                  return (
+                    <div
+                      key={skema.kode_pendaftaran}
+                      className="bg-white rounded-2xl shadow-md p-4 flex flex-col flex-shrink-0 w-[280px] snap-start"
+                    >
+                      <div className="w-full h-40 relative flex-shrink-0">
+                        <Image
+                          src={skema.skema?.gambar || GAMBAR_CADANGAN}
+                          alt={judulSkema(skema, lang)}
+                          fill
+                          className="object-cover rounded-xl"
+                        />
+                      </div>
+                      <div className="flex-1 flex flex-col justify-between mt-4">
+                        <div>
+                          <h3 className="text-base font-bold text-gray-900 leading-snug line-clamp-2">
+                            {judulSkema(skema, lang)}
+                          </h3>
+                          <p className="text-gray-500 text-sm mt-1">
+                            {hasil ? (
+                              <span className={hasil === "kompeten" ? "font-semibold text-[#78B51A]" : "font-semibold text-red-500"}>
+                                {labelHasil[hasil]}
+                              </span>
+                            ) : (
+                              skema.status_label
+                            )}
+                            {" · "}
+                            {formatTanggal(skema.asesmen?.selesai_at ?? skema.jadwal?.tanggal, lang, skema.asesmen?.selesai_at ? "Asia/Jakarta" : "UTC")}
+                          </p>
+                          {hasil === "kompeten" && (
+                            <p className="text-gray-400 text-xs mt-1">E-Sertifikat sedang diproses.</p>
+                          )}
+                        </div>
+                        <button
+                          type="button"
+                          disabled
+                          title="E-Sertifikat belum tersedia"
+                          className="mt-4 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#78B51A] text-white rounded-lg transition-colors font-semibold text-sm w-full disabled:opacity-50 disabled:cursor-not-allowed"
+                        >
+                          <Download className="h-4 w-4" />{" "}
+                          {dict.profile.downloadCertificate}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </section>
 
@@ -633,31 +640,44 @@ export default function ProfilePage({ params }: ProfilePageProps) {
             </div>
 
             <div className="space-y-4">
-              {notifikasiData.map((notif) => (
-                <div
+              {notifikasi === null && (
+                <div className="flex justify-center py-6">
+                  <Loader2 className="h-6 w-6 animate-spin text-[#78B51A]" />
+                </div>
+              )}
+              {notifikasi?.length === 0 && <p className="text-gray-500">Belum ada notifikasi.</p>}
+              {notifikasi?.map((notif) => (
+                <button
                   key={notif.id}
-                  className={`rounded-xl px-6 py-4 flex items-start gap-3 ${
-                    notif.isRead
+                  type="button"
+                  onClick={() => bukaNotifikasi(notif)}
+                  className={`w-full text-left rounded-xl px-6 py-4 flex items-start gap-3 transition-colors ${
+                    notif.dibaca
                       ? "bg-gray-200"
-                      : "bg-gray-50 border border-gray-100"
-                  }`}
+                      : "bg-gray-50 border border-gray-100 hover:border-[#8CC63F]"
+                  } ${notif.url ? "cursor-pointer" : "cursor-default"}`}
                 >
-                  {!notif.isRead && (
+                  {!notif.dibaca && (
                     <span className="h-2 w-2 rounded-full bg-red-500 mt-2 flex-shrink-0" />
                   )}
-                  <p className="text-gray-700 leading-relaxed">
-                    {notif.message}
-                  </p>
-                </div>
+                  <span className="flex-1">
+                    <span className="block text-gray-700 leading-relaxed">
+                      <PesanNotifikasi notif={notif} />
+                    </span>
+                    <span className="block text-xs text-gray-400 mt-1">
+                      {formatTanggal(notif.dibuat_at, lang)}
+                    </span>
+                  </span>
+                </button>
               ))}
             </div>
 
-            <button
-              type="button"
-              className="mt-8 px-6 py-2.5 bg-[#8CC63F] text-white rounded-lg font-semibold hover:bg-[#78B51A] transition-colors"
+            <Link
+              href={`/${lang}/notifikasi`}
+              className="mt-8 inline-block px-6 py-2.5 bg-[#8CC63F] text-white rounded-lg font-semibold hover:bg-[#78B51A] transition-colors"
             >
               Selengkapnya
-            </button>
+            </Link>
           </div>
         </div>
       </section>
@@ -681,54 +701,85 @@ export default function ProfilePage({ params }: ProfilePageProps) {
                 }`}
               >
                 {opt.label}
+                {jumlah && jumlah[opt.key] > 0 && <span className="ml-1.5 opacity-80">({jumlah[opt.key]})</span>}
               </button>
             ))}
           </div>
 
-          <div className="relative -mx-6 md:-mx-16 lg:-mx-24">
-            <div className="flex gap-4 overflow-x-auto pb-4 px-6 md:px-16 lg:px-24 snap-x snap-mandatory">
-              {filteredSertifikasi.map((item) => (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => setSelectedSertifikasi(item)}
-                  className={`text-left flex-shrink-0 w-[380px] snap-start bg-white rounded-2xl shadow-sm border overflow-hidden flex transition-all ${
-                    selectedSertifikasi?.id === item.id
-                      ? "border-[#8CC63F] ring-1 ring-[#8CC63F]"
-                      : "border-gray-100 hover:border-gray-200"
-                  }`}
-                >
-                  <div className="w-32 h-full relative flex-shrink-0">
-                    <Image
-                      src={item.image}
-                      alt={item.title}
-                      fill
-                      className="object-cover"
-                    />
-                  </div>
-                  <div className="flex-1 p-4 flex flex-col gap-2">
-                    <h3 className="font-bold text-gray-900 text-sm leading-snug">
-                      {item.title}
-                    </h3>
-                    <p className="flex items-center gap-1.5 text-xs text-gray-500">
-                      <Calendar size={14} /> {item.date}
-                    </p>
-                    <span
-                      className={`inline-flex items-center gap-1.5 w-fit px-3 py-1 rounded-md text-xs font-medium ${statusBadgeStyle[item.status]}`}
-                    >
-                      <span className="h-1.5 w-1.5 rounded-full bg-current" />
-                      {statusLabel[item.status]}
-                    </span>
-                    {item.status === "pengajuan_diterima" && (
-                      <span className="mt-1 inline-flex items-center justify-center w-fit px-4 py-1.5 rounded-lg text-xs font-semibold bg-[#8CC63F] text-white">
-                        Mulai Asesmen
-                      </span>
-                    )}
-                  </div>
-                </button>
-              ))}
+          {memuatDaftar ? (
+            <div className="flex justify-center py-10">
+              <Loader2 className="h-8 w-8 animate-spin text-[#78B51A]" />
             </div>
-          </div>
+          ) : daftar.length === 0 ? (
+            <p className="text-gray-500">
+              Belum ada sertifikasi pada kategori ini.{" "}
+              <Link href={`/${lang}/sertifikasi`} className="text-[#78B51A] font-semibold hover:underline">
+                Lihat skema sertifikasi
+              </Link>
+            </p>
+          ) : (
+            <div className="relative -mx-6 md:-mx-16 lg:-mx-24">
+              <div className="flex gap-4 overflow-x-auto pb-4 px-6 md:px-16 lg:px-24 snap-x snap-mandatory">
+                {daftar.map((item) => (
+                  <div
+                    key={item.kode_pendaftaran}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setSelectedKode(item.kode_pendaftaran)}
+                    onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setSelectedKode(item.kode_pendaftaran)}
+                    className={`text-left flex-shrink-0 w-[380px] snap-start bg-white rounded-2xl shadow-sm border overflow-hidden flex transition-all cursor-pointer ${
+                      selectedKode === item.kode_pendaftaran
+                        ? "border-[#8CC63F] ring-1 ring-[#8CC63F]"
+                        : "border-gray-100 hover:border-gray-200"
+                    }`}
+                  >
+                    <div className="w-32 h-full min-h-[140px] relative flex-shrink-0">
+                      <Image
+                        src={item.skema?.gambar || GAMBAR_CADANGAN}
+                        alt={judulSkema(item, lang)}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 p-4 flex flex-col gap-2">
+                      <h3 className="font-bold text-gray-900 text-sm leading-snug">
+                        {judulSkema(item, lang)}
+                      </h3>
+                      <p className="flex items-center gap-1.5 text-xs text-gray-500">
+                        <Calendar size={14} /> {formatTanggal(item.diajukan_at, lang)}
+                      </p>
+                      <span
+                        className={`inline-flex items-center gap-1.5 w-fit px-3 py-1 rounded-md text-xs font-medium ${statusBadgeStyle[item.kelompok ?? "diajukan"]}`}
+                      >
+                        <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                        {item.status_label}
+                      </span>
+                      {item.aksi?.jenis === "bayar" && (
+                        <Link
+                          href={urlWebsite(item.aksi.url, lang)}
+                          onClick={(e) => e.stopPropagation()}
+                          className="mt-1 inline-flex items-center justify-center w-fit px-4 py-1.5 rounded-lg text-xs font-semibold bg-[#8CC63F] text-white hover:bg-[#78B51A]"
+                        >
+                          Bayar Sekarang
+                        </Link>
+                      )}
+                      {item.aksi?.jenis === "mulai_asesmen" && (
+                        <a
+                          href={item.aksi.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="mt-1 inline-flex items-center justify-center w-fit px-4 py-1.5 rounded-lg text-xs font-semibold bg-[#8CC63F] text-white hover:bg-[#78B51A]"
+                        >
+                          Mulai Asesmen
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {selectedSertifikasi && (
             <div className="mt-6 bg-gray-50 rounded-3xl p-6 md:p-8">
@@ -737,62 +788,100 @@ export default function ProfilePage({ params }: ProfilePageProps) {
                   <div className="flex items-center gap-4">
                     <div className="w-16 h-16 relative rounded-lg overflow-hidden flex-shrink-0">
                       <Image
-                        src={selectedSertifikasi.image}
-                        alt={selectedSertifikasi.title}
+                        src={selectedSertifikasi.skema?.gambar || GAMBAR_CADANGAN}
+                        alt={judulSkema(selectedSertifikasi, lang)}
                         fill
                         className="object-cover"
                       />
                     </div>
                     <div>
                       <h3 className="text-lg font-bold text-gray-900">
-                        {selectedSertifikasi.title}
+                        {judulSkema(selectedSertifikasi, lang)}
                       </h3>
                       <p className="flex items-center gap-1.5 text-sm text-gray-500 mt-1">
-                        <Calendar size={14} /> {selectedSertifikasi.detailDate}
+                        <Calendar size={14} />{" "}
+                        {selectedSertifikasi.jadwal?.tanggal
+                          ? formatTanggal(selectedSertifikasi.jadwal.tanggal, lang, "UTC")
+                          : "Jadwal asesmen belum ditentukan"}
                       </p>
                     </div>
                   </div>
                   <span
-                    className={`px-4 py-1.5 rounded-lg text-sm font-medium flex-shrink-0 ${statusBadgeStyle[selectedSertifikasi.status]}`}
+                    className={`px-4 py-1.5 rounded-lg text-sm font-medium flex-shrink-0 ${statusBadgeStyle[selectedSertifikasi.kelompok ?? "diajukan"]}`}
                   >
-                    {statusLabel[selectedSertifikasi.status]}
+                    {selectedSertifikasi.status_label}
                   </span>
                 </div>
 
-                {/* Batch & TUK */}
+                {/* Jadwal & TUK */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-6 border-b border-gray-100">
                   <div>
-                    <p className="text-xs text-gray-400 mb-1">Batch</p>
+                    <p className="text-xs text-gray-400 mb-1">Jadwal Asesmen</p>
                     <p className="font-medium text-gray-900">
-                      {selectedSertifikasi.batch}
+                      {selectedSertifikasi.jadwal?.tanggal
+                        ? `${formatTanggal(selectedSertifikasi.jadwal.tanggal, lang, "UTC")}${
+                            selectedSertifikasi.jadwal.waktu_mulai
+                              ? `, ${selectedSertifikasi.jadwal.waktu_mulai}${selectedSertifikasi.jadwal.waktu_selesai ? `–${selectedSertifikasi.jadwal.waktu_selesai}` : ""} WIB`
+                              : ""
+                          }`
+                        : "-"}
                     </p>
                   </div>
                   <div>
                     <p className="text-xs text-gray-400 mb-1">TUK</p>
                     <p className="font-medium text-gray-900">
-                      {selectedSertifikasi.tuk}
+                      {selectedSertifikasi.jadwal?.tuk
+                        ? [selectedSertifikasi.jadwal.tuk.nama, selectedSertifikasi.jadwal.tuk.kota].filter(Boolean).join(" - ")
+                        : "-"}
                     </p>
                   </div>
+                  {selectedSertifikasi.jadwal?.asesor && (
+                    <div>
+                      <p className="text-xs text-gray-400 mb-1">Asesor</p>
+                      <p className="font-medium text-gray-900">{selectedSertifikasi.jadwal.asesor}</p>
+                    </div>
+                  )}
+                  {selectedSertifikasi.asesmen?.hasil && (
+                    <div>
+                      <p className="text-xs text-gray-400 mb-1">Hasil Asesmen</p>
+                      <p
+                        className={`font-semibold ${selectedSertifikasi.asesmen.hasil === "kompeten" ? "text-[#78B51A]" : "text-red-500"}`}
+                      >
+                        {labelHasil[selectedSertifikasi.asesmen.hasil]}
+                      </p>
+                    </div>
+                  )}
+                  {selectedSertifikasi.catatan_admin && (
+                    <div className="md:col-span-2">
+                      <p className="text-xs text-gray-400 mb-1">Catatan Admin</p>
+                      <p className="font-medium text-red-600">{selectedSertifikasi.catatan_admin}</p>
+                    </div>
+                  )}
                 </div>
 
                 {/* Timeline */}
                 <div className="pt-6 space-y-6">
-                  {selectedSertifikasi.timeline.map((step, idx) => (
-                    <div key={idx} className="flex gap-4">
-                      <span className="h-3 w-3 rounded-full bg-[#8CC63F] mt-1.5 flex-shrink-0" />
-                      <div>
-                        <h4 className="font-semibold text-gray-900">
-                          {step.title}
-                        </h4>
-                        <p className="text-xs text-gray-400 mt-0.5">
-                          {step.date}
-                        </p>
-                        <p className="text-sm text-gray-600 mt-1">
-                          {step.desc}
-                        </p>
+                  {memuatDetail && <Loader2 className="h-6 w-6 animate-spin text-[#78B51A]" />}
+                  {!memuatDetail &&
+                    detail?.kode_pendaftaran === selectedSertifikasi.kode_pendaftaran &&
+                    detail.timeline.map((step, idx) => (
+                      <div key={idx} className="flex gap-4">
+                        <span className="h-3 w-3 rounded-full bg-[#8CC63F] mt-1.5 flex-shrink-0" />
+                        <div>
+                          <h4 className="font-semibold text-gray-900">
+                            {step.judul}
+                          </h4>
+                          <p className="text-xs text-gray-400 mt-0.5">
+                            {formatTanggal(step.tanggal, lang, "UTC")}
+                          </p>
+                          {step.keterangan && (
+                            <p className="text-sm text-gray-600 mt-1">
+                              {step.keterangan}
+                            </p>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    ))}
                 </div>
               </div>
             </div>

@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Menu, X, ChevronDown, Bell, User } from "lucide-react";
 import Image from "next/image";
 import { useAuth } from "@/lib/auth-context";
+import { useNotifikasiBelumDibaca } from "@/hooks/use-notifikasi-belum-dibaca";
 
 export default function Navigation({
   lang,
@@ -15,6 +16,7 @@ export default function Navigation({
   dict: any;
 }) {
   const { isLoggedIn, logout, user } = useAuth();
+  const belumDibaca = useNotifikasiBelumDibaca();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
@@ -128,17 +130,23 @@ export default function Navigation({
 
           {/* Bagian Kanan (Notifikasi, Bahasa, & Auth) */}
           <div className="hidden md:flex items-center space-x-5">
-            <Link href={`/${lang}/notifikasi`}>
+            <Link
+              href={`/${lang}/notifikasi`}
+              aria-label={belumDibaca > 0 ? `Notifikasi (${belumDibaca} belum dibaca)` : "Notifikasi"}
+            >
               <div className="relative cursor-pointer transition-transform active:scale-95">
                 <Bell
                   className="h-6 w-6 text-[#8CC63F]"
                   fill="#8CC63F"
                   fillOpacity={0.2}
                 />
-                <span className="absolute -top-1 -right-1 flex h-3 w-3">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
-                </span>
+                {/* Titik merah hanya bila ada notifikasi belum dibaca. */}
+                {belumDibaca > 0 && (
+                  <span className="absolute -top-1 -right-1 flex h-3 w-3">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500"></span>
+                  </span>
+                )}
               </div>
             </Link>
 
