@@ -31,7 +31,8 @@ export interface PendaftaranAsesi {
     hasil: "kompeten" | "belum_kompeten" | null;
     selesai_at: string | null;
   } | null;
-  aksi: { jenis: "bayar" | "mulai_asesmen"; url: string } | null;
+  /** cek_pembayaran = bukti transfer manual sedang diverifikasi admin. */
+  aksi: { jenis: "bayar" | "cek_pembayaran" | "mulai_asesmen"; url: string } | null;
 }
 
 export interface PendaftaranAsesiDetail extends PendaftaranAsesi {

@@ -754,13 +754,17 @@ export default function ProfilePage({ params }: ProfilePageProps) {
                         <span className="h-1.5 w-1.5 rounded-full bg-current" />
                         {item.status_label}
                       </span>
-                      {item.aksi?.jenis === "bayar" && (
+                      {(item.aksi?.jenis === "bayar" || item.aksi?.jenis === "cek_pembayaran") && (
                         <Link
                           href={urlWebsite(item.aksi.url, lang)}
                           onClick={(e) => e.stopPropagation()}
-                          className="mt-1 inline-flex items-center justify-center w-fit px-4 py-1.5 rounded-lg text-xs font-semibold bg-[#8CC63F] text-white hover:bg-[#78B51A]"
+                          className={`mt-1 inline-flex items-center justify-center w-fit px-4 py-1.5 rounded-lg text-xs font-semibold ${
+                            item.aksi.jenis === "bayar"
+                              ? "bg-[#8CC63F] text-white hover:bg-[#78B51A]"
+                              : "border border-[#8CC63F] text-[#78B51A] hover:bg-[#8CC63F]/10"
+                          }`}
                         >
-                          Bayar Sekarang
+                          {item.aksi.jenis === "bayar" ? "Bayar Sekarang" : "Lihat Status Pembayaran"}
                         </Link>
                       )}
                       {item.aksi?.jenis === "mulai_asesmen" && (
