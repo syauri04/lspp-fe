@@ -24,7 +24,7 @@ const openSans = Open_Sans({
 });
 
 export const metadata: Metadata = {
-  title: "LSPP 306 - Sertifikasi Pariwisata Global",
+  title: "LSPP 306 - Sertifikasi Pariwisata",
   description:
     "Mempersiapkan tenaga kerja pariwisata yang kompeten, kompetitif, dan beretika untuk menjawab tantangan industri pariwisata di tingkat nasional maupun internasional.",
   generator: "v0.app",

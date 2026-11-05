@@ -45,34 +45,39 @@ interface PendaftaranResponse {
 
 type FileFieldKey = "ktp" | "pas_foto" | "ijazah" | "cv" | "portfolio";
 
-const FILE_FIELDS: { key: FileFieldKey; label: string; placeholder: string }[] =
-  [
-    {
-      key: "ktp",
-      label: "Unggah KTP Anda",
-      placeholder: "KTP.pdf",
-    },
-    {
-      key: "pas_foto",
-      label: "Unggah Pas-Foto Anda",
-      placeholder: "Pas_Foto.jpeg",
-    },
-    {
-      key: "ijazah",
-      label: "Unggah Ijazah Terakhir Anda",
-      placeholder: "Ijazah_Terakhir.pdf",
-    },
-    {
-      key: "cv",
-      label: "Unggah CV Anda",
-      placeholder: "CV.pdf",
-    },
-    {
-      key: "portfolio",
-      label: "Unggah Portofolio Anda",
-      placeholder: "Portofolio.pdf",
-    },
-  ];
+/** Batas ukuran per file. Samakan dengan StorePendaftaranSertifikasiRequest::MAKS_KB di lspp-be. */
+const MAKS_MB = 25;
+
+const PDF = { accept: "application/pdf,.pdf", ekstensi: ["pdf"], format: "PDF" };
+const GAMBAR = { accept: "image/jpeg,image/png,.jpg,.jpeg,.png", ekstensi: ["jpg", "jpeg", "png"], format: "JPG/PNG" };
+
+const FILE_FIELDS: {
+  key: FileFieldKey;
+  nama: string;
+  label: string;
+  placeholder: string;
+  tipe: typeof PDF;
+}[] = [
+  { key: "ktp", nama: "KTP", label: "Unggah KTP Anda", placeholder: "KTP.pdf", tipe: PDF },
+  { key: "pas_foto", nama: "Pas foto", label: "Unggah Pas-Foto Anda", placeholder: "Pas_Foto.jpeg", tipe: GAMBAR },
+  { key: "ijazah", nama: "Ijazah", label: "Unggah Ijazah Terakhir Anda", placeholder: "Ijazah_Terakhir.pdf", tipe: PDF },
+  { key: "cv", nama: "CV", label: "Unggah CV Anda", placeholder: "CV.pdf", tipe: PDF },
+  { key: "portfolio", nama: "Portofolio", label: "Unggah Portofolio Anda", placeholder: "Portofolio.pdf", tipe: PDF },
+];
+
+const formatMB = (bytes: number) => `${(bytes / 1024 / 1024).toFixed(1).replace(".", ",")} MB`;
+
+/** Pesan error untuk file yang tidak sesuai (format / ukuran), null bila valid. */
+function cekFile(f: (typeof FILE_FIELDS)[number], file: File): string | null {
+  const ext = file.name.split(".").pop()?.toLowerCase() ?? "";
+  if (!f.tipe.ekstensi.includes(ext)) {
+    return `${f.nama} wajib berformat ${f.tipe.format}.`;
+  }
+  if (file.size > MAKS_MB * 1024 * 1024) {
+    return `Ukuran ${f.nama} ${formatMB(file.size)}, melebihi batas ${MAKS_MB} MB.`;
+  }
+  return null;
+}
 
 const EMPTY_FILES: Record<FileFieldKey, File | null> = {
   ktp: null,
@@ -140,8 +145,32 @@ export default function DetailSertifikasi({ params }: DetailSertifikasiProps) {
     }
   }, [slug]);
 
+  const [fileErrors, setFileErrors] = useState<Partial<Record<FileFieldKey, string>>>({});
+
+  const setFileError = (key: FileFieldKey, pesan: string | null) =>
+    setFileErrors((prev) => {
+      const next = { ...prev };
+      if (pesan) next[key] = pesan;
+      else delete next[key];
+      return next;
+    });
+
   const handleFileChange = (key: FileFieldKey) => (file: File | null) => {
+    const field = FILE_FIELDS.find((f) => f.key === key)!;
+    const pesan = file ? cekFile(field, file) : null;
+    setFileError(key, pesan);
+    if (pesan) {
+      // File ditolak: tidak disimpan, input dikosongkan oleh FileUpload.
+      setFiles((prev) => ({ ...prev, [key]: null }));
+      toast({
+        variant: "destructive",
+        title: lang === "id" ? `${field.nama} tidak dapat diunggah` : `${field.nama} cannot be uploaded`,
+        description: <span className="text-white font-bold">{pesan}</span>,
+      });
+      return false;
+    }
     setFiles((prev) => ({ ...prev, [key]: file }));
+    return true;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -160,6 +189,24 @@ export default function DetailSertifikasi({ params }: DetailSertifikasiProps) {
     }
 
     if (!detail) return;
+
+    // Cek ulang per file sebelum kirim (ukuran/format), tampilkan di field masing-masing.
+    const tidakValid = FILE_FIELDS.flatMap((f) => {
+      const file = files[f.key];
+      const pesan = file ? cekFile(f, file) : null;
+      return pesan ? [{ key: f.key, pesan }] : [];
+    });
+    if (tidakValid.length > 0) {
+      tidakValid.forEach((t) => setFileError(t.key, t.pesan));
+      const msg = tidakValid.map((t) => t.pesan).join(" ");
+      setSubmitError(msg);
+      toast({
+        variant: "destructive",
+        title: lang === "id" ? "File Tidak Sesuai" : "Invalid File",
+        description: <span className="text-white font-bold">{msg}</span>,
+      });
+      return;
+    }
 
     const missing = FILE_FIELDS.filter((f) => !files[f.key]);
     if (missing.length > 0) {
@@ -194,9 +241,27 @@ export default function DetailSertifikasi({ params }: DetailSertifikasiProps) {
         body: formData,
       });
 
-      const result: PendaftaranResponse = await response.json();
+      if (response.status === 413) {
+        // Ditolak server sebelum sampai Laravel (batas total unggahan di server).
+        throw new Error(
+          `Total ukuran file terlalu besar untuk server. Pastikan tiap file maksimal ${MAKS_MB} MB, atau perkecil ukurannya.`,
+        );
+      }
+
+      const result: PendaftaranResponse = await response.json().catch(() => ({}) as PendaftaranResponse);
 
       if (!response.ok) {
+        // 422: tampilkan pesan per file di field masing-masing.
+        const errors: Record<string, string[]> | undefined = (result as any)?.errors;
+        if (response.status === 422 && errors) {
+          const pesanFile = FILE_FIELDS.filter((f) => errors[f.key]?.[0]).map((f) => {
+            setFileError(f.key, errors[f.key][0]);
+            return errors[f.key][0];
+          });
+          const lain = errors.skema_sertifikasi_id?.[0];
+          const semua = [...pesanFile, ...(lain ? [lain] : [])];
+          if (semua.length > 0) throw new Error(semua.join(" "));
+        }
         throw new Error(
           (result as any)?.message || "Gagal mengirim pendaftaran",
         );
@@ -313,6 +378,9 @@ export default function DetailSertifikasi({ params }: DetailSertifikasiProps) {
                   key={f.key}
                   label={f.label}
                   placeholder={f.placeholder}
+                  accept={f.tipe.accept}
+                  hint={`${f.tipe.format}, maks. ${MAKS_MB} MB`}
+                  error={fileErrors[f.key]}
                   onFileChange={handleFileChange(f.key)}
                 />
               ))}
