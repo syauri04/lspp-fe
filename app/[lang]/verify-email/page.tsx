@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { useState, useEffect, use, useRef } from "react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/lib/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -19,13 +18,17 @@ export default function VerifyEmailPage({ params }: VerifyEmailPageProps) {
   const resolvedParams = use(params);
   const lang = resolvedParams.lang;
   const router = useRouter();
-  const { login } = useAuth();
   const { toast } = useToast();
 
   const [dict, setDict] = useState<any>(null);
   const [status, setStatus] = useState<"verifying" | "success" | "failed">(
     "verifying",
   );
+  /** true bila email sudah terverifikasi sebelumnya (link dibuka ulang). */
+  const [sudahSebelumnya, setSudahSebelumnya] = useState(false);
+  const [pesanGagal, setPesanGagal] = useState<string | null>(null);
+  // Verifikasi hanya sekali per halaman (React StrictMode / render ulang tidak mengirim ulang).
+  const sudahDiproses = useRef(false);
   const [email, setEmail] = useState("");
   const [resending, setResending] = useState(false);
   const [resendSuccess, setResendSuccess] = useState(false);
@@ -36,67 +39,42 @@ export default function VerifyEmailPage({ params }: VerifyEmailPageProps) {
     });
   }, [lang]);
 
+  // Verifikasi email saja — TIDAK login otomatis (asesi login sendiri lewat tombol Login).
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (sudahDiproses.current) return;
+    sudahDiproses.current = true;
+
     const search = window.location.search;
-    if (
-      !search ||
-      !search.includes("expires") ||
-      !search.includes("signature")
-    ) {
+    if (!search || !search.includes("expires") || !search.includes("signature")) {
       setStatus("failed");
       return;
     }
 
-    const verifyEmail = async () => {
+    (async () => {
       try {
         const res = await verifyEmailLink(search);
-        const data = await res.json();
+        const data = await res.json().catch(() => ({}));
 
         if (res.ok) {
+          setSudahSebelumnya(Boolean(data?.data?.sudah_terverifikasi));
           setStatus("success");
-          login(data.data.token, data.data.asesi || {});
-          toast({
-            title:
-              lang === "id" ? "Verifikasi Berhasil" : "Verification Successful",
-            description:
-              data.message ||
-              (lang === "id"
-                ? "Email berhasil diverifikasi."
-                : "Email verified successfully."),
-          });
-
-          setTimeout(() => {
-            router.push(`/${lang}/profile`);
-          }, 3000);
         } else {
+          setPesanGagal(
+            res.status === 429
+              ? lang === "id"
+                ? "Terlalu banyak percobaan. Coba lagi dalam 1 menit."
+                : "Too many attempts. Please try again in a minute."
+              : null,
+          );
           setStatus("failed");
-          toast({
-            variant: "destructive",
-            title: lang === "id" ? "Verifikasi Gagal" : "Verification Failed",
-            description:
-              data.message ||
-              (lang === "id"
-                ? "Link verifikasi telah kadaluarsa atau tidak valid."
-                : "Verification link has expired or is invalid."),
-          });
         }
       } catch (err) {
         console.error(err);
+        setPesanGagal(lang === "id" ? "Terjadi kesalahan jaringan. Muat ulang halaman ini." : "A network error occurred. Please reload this page.");
         setStatus("failed");
-        toast({
-          variant: "destructive",
-          title: "Error",
-          description:
-            lang === "id"
-              ? "Terjadi kesalahan jaringan."
-              : "A network error occurred.",
-        });
       }
-    };
-
-    verifyEmail();
-  }, [lang, login, router, toast]);
+    })();
+  }, [lang]);
 
   const handleResend = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -167,20 +145,28 @@ export default function VerifyEmailPage({ params }: VerifyEmailPageProps) {
           <div className="flex flex-col items-center space-y-4">
             <CheckCircle2 className="h-16 w-16 text-[#82B124] animate-bounce" />
             <h2 className="text-2xl font-bold text-gray-800">
-              {lang === "id"
-                ? "Verifikasi Berhasil!"
-                : "Verification Successful!"}
+              {sudahSebelumnya
+                ? lang === "id"
+                  ? "Email Sudah Terverifikasi"
+                  : "Email Already Verified"
+                : lang === "id"
+                  ? "Verifikasi Berhasil!"
+                  : "Verification Successful!"}
             </h2>
             <p className="text-gray-500 max-w-sm">
-              {lang === "id"
-                ? "Email Anda telah berhasil diverifikasi. Anda sedang dialihkan..."
-                : "Your email has been verified. Redirecting you..."}
+              {sudahSebelumnya
+                ? lang === "id"
+                  ? "Email Anda sudah terverifikasi sebelumnya. Silakan login untuk melanjutkan."
+                  : "Your email was already verified. Please log in to continue."
+                : lang === "id"
+                  ? "Email Anda telah berhasil diverifikasi. Silakan login menggunakan email dan password yang Anda daftarkan."
+                  : "Your email has been verified. Please log in with the email and password you registered."}
             </p>
             <Button
               className="mt-4 bg-[#82B124] hover:bg-[#729c1f] text-white rounded-xl font-bold px-8 py-3"
-              onClick={() => router.push(`/${lang}/profile`)}
+              onClick={() => router.push(`/${lang}/login`)}
             >
-              {lang === "id" ? "Masuk ke Profil" : "Go to Profile"}
+              {lang === "id" ? "Login" : "Log In"}
             </Button>
           </div>
         )}
@@ -193,9 +179,10 @@ export default function VerifyEmailPage({ params }: VerifyEmailPageProps) {
                 {lang === "id" ? "Verifikasi Gagal" : "Verification Failed"}
               </h2>
               <p className="text-gray-500 max-w-sm">
-                {lang === "id"
-                  ? "Link verifikasi telah kadaluarsa atau tidak valid. Silakan minta email verifikasi baru di bawah."
-                  : "The verification link is expired or invalid. Please request a new verification email below."}
+                {pesanGagal ??
+                  (lang === "id"
+                    ? "Link verifikasi telah kadaluarsa atau tidak valid. Silakan minta email verifikasi baru di bawah."
+                    : "The verification link is expired or invalid. Please request a new verification email below.")}
               </p>
             </div>
 

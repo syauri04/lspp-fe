@@ -15,13 +15,22 @@ import {
   X,
   Camera,
   Lock,
+  KeyRound,
+  Info,
   Bell,
   Calendar,
 } from "lucide-react";
 import { getDictionary } from "../dictionaries";
 import { useAuth } from "@/lib/auth-context";
+import { avatarSvg, urlAvatar } from "@/lib/avatar";
 import { useToast } from "@/hooks/use-toast";
-import { updateProfile, changePassword } from "@/service/auth.service";
+import {
+  updateProfile,
+  changePassword,
+  setPassword,
+  getMe,
+  pesanErrorApi,
+} from "@/service/auth.service";
 import {
   bacaNotifikasi,
   formatTanggal,
@@ -89,7 +98,11 @@ export default function ProfilePage({ params }: ProfilePageProps) {
     isLoggedIn,
     loading: authLoading,
     updateUser,
+    login,
   } = useAuth();
+
+  /** Akun Google belum punya password → tombol "Buat Password" (tanpa password lama). */
+  const punyaPassword = user?.has_password !== false;
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [dict, setDict] = useState<any>(null);
@@ -127,6 +140,32 @@ export default function ProfilePage({ params }: ProfilePageProps) {
   useEffect(() => {
     getDictionary(lang).then(setDict);
   }, [lang]);
+
+  // Segarkan has_password dari server (data user di localStorage bisa usang).
+  useEffect(() => {
+    if (!token) return;
+    let batal = false;
+    getMe(token)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((res) => {
+        const terbaru = res?.data;
+        if (!batal && terbaru && user && terbaru.has_password !== user.has_password) {
+          updateUser({ ...user, has_password: terbaru.has_password });
+        }
+      })
+      .catch(() => {});
+    return () => {
+      batal = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
+
+  // Dari halaman daftar skema: /profile?aksi=set-password langsung membuka form password.
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("aksi") === "set-password") {
+      setIsEditingPassword(true);
+    }
+  }, []);
 
   useEffect(() => {
     if (user) {
@@ -304,7 +343,7 @@ export default function ProfilePage({ params }: ProfilePageProps) {
   };
 
   const handleSavePassword = async () => {
-    if (!passData.current_password || !passData.password) {
+    if ((punyaPassword && !passData.current_password) || !passData.password) {
       return toast({
         title: "Error",
         description: "Semua kolom password wajib diisi.",
@@ -327,7 +366,12 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
     setIsUpdatingPassword(true);
     try {
-      const res = await changePassword(passData, token);
+      const res = punyaPassword
+        ? await changePassword(passData, token)
+        : await setPassword(
+            { password: passData.password, password_confirmation: passData.password_confirmation },
+            token,
+          );
 
       let result: any = null;
       try {
@@ -335,7 +379,18 @@ export default function ProfilePage({ params }: ProfilePageProps) {
       } catch {}
 
       if (res.ok) {
-        toast({ title: "Berhasil", description: "Password berhasil diubah." });
+        if (user) {
+          const userBaru = { ...user, has_password: true };
+          // Ganti password mencabut semua token lama & mengembalikan token baru: simpan agar tetap login.
+          if (result?.data?.token) login(result.data.token, userBaru);
+          else updateUser(userBaru);
+        }
+        toast({
+          title: "Berhasil",
+          description: punyaPassword
+            ? "Password berhasil diubah."
+            : "Password berhasil dibuat. Gunakan email & password ini untuk login di MUK.",
+        });
         setIsEditingPassword(false);
         setPassData({
           current_password: "",
@@ -344,8 +399,12 @@ export default function ProfilePage({ params }: ProfilePageProps) {
         });
       } else {
         toast({
+          variant: "destructive",
           title: "Gagal",
-          description: result?.message || "Gagal mengubah password.",
+          description: pesanErrorApi(
+            result,
+            punyaPassword ? "Gagal mengubah password." : "Gagal membuat password.",
+          ),
         });
       }
     } catch (err) {
@@ -381,7 +440,8 @@ export default function ProfilePage({ params }: ProfilePageProps) {
         <div className="max-w-6xl mx-auto px-6 relative z-10 flex flex-col md:flex-row items-center gap-8">
           <div className="relative flex-shrink-0">
             <Image
-              src={previewUrl || user?.avatar || "/images/avatar/avatar-1.jpg"}
+              src={previewUrl || urlAvatar(user)}
+              unoptimized={Boolean(previewUrl) || avatarSvg(urlAvatar(user))}
               alt="Profile"
               width={200}
               height={200}
@@ -498,7 +558,15 @@ export default function ProfilePage({ params }: ProfilePageProps) {
                   onClick={() => setIsEditingPassword(true)}
                   className="bg-white text-[#8CC63F] px-6 py-2 rounded-lg font-medium shadow flex items-center gap-2 hover:bg-gray-100 transition"
                 >
-                  <Lock size={16} /> Edit Password
+                  {punyaPassword ? (
+                    <>
+                      <Lock size={16} /> Edit Password
+                    </>
+                  ) : (
+                    <>
+                      <KeyRound size={16} /> Set Password
+                    </>
+                  )}
                 </button>
               )}
             </div>
@@ -508,16 +576,29 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
       {isEditingPassword && (
         <div className="max-w-6xl mx-auto px-6 mt-6 animate-in fade-in duration-300">
+          {!punyaPassword && (
+            <p className="mb-3 flex items-start gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+              <Info size={16} className="mt-0.5 shrink-0" />
+              <span>
+                Akun Anda terdaftar melalui Google dan belum memiliki password. Buat password untuk dapat
+                mendaftar skema sertifikasi. Email &amp; password ini digunakan untuk login ke aplikasi MUK
+                saat asesmen.
+              </span>
+            </p>
+          )}
           <div className="bg-gray-100 p-6 rounded-2xl flex flex-wrap gap-4 items-center border border-gray-200">
-            <input
-              type="password"
-              placeholder="Password Lama"
-              value={passData.current_password}
-              className="p-2 border rounded-lg flex-1 min-w-[200px]"
-              onChange={(e) =>
-                setPassData({ ...passData, current_password: e.target.value })
-              }
-            />
+            {punyaPassword && (
+              <input
+                type="password"
+                placeholder="Password Lama"
+                autoComplete="current-password"
+                value={passData.current_password}
+                className="p-2 border rounded-lg flex-1 min-w-[200px]"
+                onChange={(e) =>
+                  setPassData({ ...passData, current_password: e.target.value })
+                }
+              />
+            )}
             <input
               type="password"
               placeholder="Password Baru"
@@ -550,6 +631,9 @@ export default function ProfilePage({ params }: ProfilePageProps) {
               )}
               {isUpdatingPassword ? "Menyimpan..." : "Simpan Password"}
             </button>
+            <p className="w-full text-xs text-gray-500">
+              Minimal 8 karakter, berisi huruf besar &amp; kecil, angka, dan simbol (mis. Rahasia#123).
+            </p>
           </div>
         </div>
       )}

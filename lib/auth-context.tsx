@@ -9,6 +9,8 @@ export interface Asesi {
   phone?: string;
   address?: string;
   avatar?: string;
+  /** Foto asesi atau avatar bawaan dari lspp-be (selalu terisi untuk data baru). */
+  avatar_url?: string;
   has_password: boolean;
 }
 

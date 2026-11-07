@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { Menu, X, ChevronDown, Bell, User } from "lucide-react";
 import Image from "next/image";
 import { useAuth } from "@/lib/auth-context";
+import { avatarSvg, urlAvatar } from "@/lib/avatar";
 import { useNotifikasiBelumDibaca } from "@/hooks/use-notifikasi-belum-dibaca";
 
 export default function Navigation({
@@ -180,7 +181,8 @@ export default function Navigation({
                 <Link href={`/${lang}/profile`} className="flex items-center gap-2">
                   <div className="relative w-9 h-9 rounded-full overflow-hidden border border-[#8CC63F] flex-shrink-0">
                     <Image
-                      src={user?.avatar || "/images/avatar/avatar-1.jpg"}
+                      src={urlAvatar(user)}
+                      unoptimized={avatarSvg(urlAvatar(user))}
                       alt="Profile"
                       fill
                       className="object-cover"
@@ -317,7 +319,8 @@ export default function Navigation({
                     >
                       <div className="relative w-10 h-10 rounded-full overflow-hidden border border-[#8CC63F] flex-shrink-0">
                         <Image
-                          src={user?.avatar || "/images/avatar/avatar-1.jpg"}
+                          src={urlAvatar(user)}
+                          unoptimized={avatarSvg(urlAvatar(user))}
                           alt="Profile"
                           fill
                           className="object-cover"

@@ -108,7 +108,7 @@
     "passwordPlaceholder": "Create a password",
     "confirmPasswordPlaceholder": "Retype password",
     "captchaPlaceholder": "Enter the characters above",
-    "passwordHint": "Must be more than 8 characters",
+    "passwordHint": "Min. 8 characters, with uppercase & lowercase letters, a number, and a symbol (e.g. Secret#123)",
     "createBtn": "Create Account",
     "registerGoogle": "Register with Google",
     "haveAccount": "Already have an account?",
@@ -229,7 +229,7 @@
       "newest": "Newest",
       "oldest": "Oldest",
       "mostViewed": "Most Viewed",
-      "category": "Category"
+      "category": "Field"
     },
     "flow": {
       "title": "Certification Flow",

@@ -12,6 +12,8 @@ import FileUpload from "@/components/ui/FileUpload";
 import { getDictionary } from "@/app/[lang]/dictionaries";
 import { useAuth } from "@/lib/auth-context";
 import { useToast } from "@/hooks/use-toast";
+import { ToastAction } from "@/components/ui/toast";
+import { getMe } from "@/service/auth.service";
 
 interface DetailSertifikasiProps {
   params: Promise<{ lang: "id" | "en"; slug: string }>;
@@ -93,8 +95,54 @@ export default function DetailSertifikasi({ params }: DetailSertifikasiProps) {
   const slug = resolvedParams.slug;
 
   const router = useRouter();
-  const { token } = useAuth();
+  const { token, user, updateUser } = useAuth();
   const { toast } = useToast();
+
+  /** Akun Google tanpa password tidak bisa mendaftar: password dipakai login MUK saat asesmen. */
+  const [perluPassword, setPerluPassword] = useState(false);
+  const urlSetPassword = `/${lang}/profile?aksi=set-password`;
+
+  // Segarkan has_password dari server: bisa saja password sudah dibuat di perangkat lain.
+  useEffect(() => {
+    if (!token) return;
+    let batal = false;
+    getMe(token)
+      .then((res) => (res.ok ? res.json() : null))
+      .then((res) => {
+        const terbaru = res?.data;
+        if (!batal && terbaru && user && terbaru.has_password !== user.has_password) {
+          updateUser({ ...user, has_password: terbaru.has_password });
+        }
+      })
+      .catch(() => {});
+    return () => {
+      batal = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
+
+  const infoPerluPassword = () => {
+    setPerluPassword(true);
+    toast({
+      variant: "destructive",
+      title: lang === "id" ? "Buat Password Terlebih Dahulu" : "Set a Password First",
+      description: (
+        <span className="text-white font-bold">
+          Akun Anda belum memiliki password. Password digunakan untuk login ke aplikasi MUK saat
+          asesmen. Silakan buat password di halaman Profil, lalu kirim ulang pendaftaran.
+        </span>
+      ),
+      action: (
+        <ToastAction
+          altText="Buat Password"
+          onClick={() => router.push(urlSetPassword)}
+          className="h-9! border-white! bg-white! px-4! font-bold! text-red-600! hover:bg-red-50! hover:text-red-700!"
+        >
+          Buat Password
+        </ToastAction>
+      ),
+    });
+  };
 
   const [dict, setDict] = useState<any>(null);
   const [detail, setDetail] = useState<SchemeDetail | null>(null);
@@ -190,6 +238,12 @@ export default function DetailSertifikasi({ params }: DetailSertifikasiProps) {
 
     if (!detail) return;
 
+    // Dicek sebelum mengunggah 5 dokumen agar tidak sia-sia (server juga menolak dengan 403).
+    if (user && user.has_password === false) {
+      infoPerluPassword();
+      return;
+    }
+
     // Cek ulang per file sebelum kirim (ukuran/format), tampilkan di field masing-masing.
     const tidakValid = FILE_FIELDS.flatMap((f) => {
       const file = files[f.key];
@@ -249,6 +303,13 @@ export default function DetailSertifikasi({ params }: DetailSertifikasiProps) {
       }
 
       const result: PendaftaranResponse = await response.json().catch(() => ({}) as PendaftaranResponse);
+
+      if (response.status === 403 && (result as any)?.kode === "password_belum_diatur") {
+        // Data user di browser usang (password belum dibuat): tandai agar tidak perlu unggah ulang sia-sia.
+        if (user) updateUser({ ...user, has_password: false });
+        infoPerluPassword();
+        return;
+      }
 
       if (!response.ok) {
         // 422: tampilkan pesan per file di field masing-masing.
@@ -385,6 +446,17 @@ export default function DetailSertifikasi({ params }: DetailSertifikasiProps) {
                 />
               ))}
             </div>
+
+            {perluPassword && (
+              <div className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                Akun Anda terdaftar melalui Google dan belum memiliki password. Password digunakan untuk login
+                ke aplikasi MUK saat asesmen.{" "}
+                <Link href={urlSetPassword} className="font-bold underline">
+                  Buat password di halaman Profil
+                </Link>
+                , lalu kembali ke halaman ini untuk mengirim pendaftaran.
+              </div>
+            )}
 
             {submitError && (
               <p className="text-red-500 text-sm font-medium">{submitError}</p>

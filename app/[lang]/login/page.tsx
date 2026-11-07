@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { loginUser, loginGoogle } from "@/service/auth.service";
 import { GoogleLogin } from "@react-oauth/google";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { CaptchaGambar, useCaptcha } from "@/components/auth/CaptchaGambar";
 
 interface LoginPageProps {
   params: Promise<{ lang: "id" | "en" }>;
@@ -29,6 +30,7 @@ export default function LoginPage({ params }: LoginPageProps) {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [captcha, setCaptcha] = useState("");
+  const captchaServer = useCaptcha();
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -45,15 +47,16 @@ export default function LoginPage({ params }: LoginPageProps) {
     e.preventDefault();
     if (loading) return;
 
-    if (captcha.trim().replace(/\s+/g, "").toUpperCase() !== "B47X2Q") {
+    // Kode captcha dicek di server (sekali pakai), di sini hanya pastikan sudah diisi.
+    if (!captchaServer.id || !captcha.trim()) {
       toast({
         variant: "destructive",
-        title: lang === "id" ? "Captcha Salah" : "Invalid Captcha",
+        title: lang === "id" ? "Captcha Belum Diisi" : "Captcha Required",
         description: (
           <span className="text-white font-bold">
             {lang === "id"
-              ? "Karakter captcha tidak cocok."
-              : "The captcha characters do not match."}
+              ? "Ketik karakter yang tampil pada gambar captcha."
+              : "Type the characters shown in the captcha image."}
           </span>
         ),
       });
@@ -62,8 +65,19 @@ export default function LoginPage({ params }: LoginPageProps) {
 
     setLoading(true);
     try {
-      const res = await loginUser({ email, password });
+      const res = await loginUser({
+        email,
+        password,
+        captcha_id: captchaServer.id,
+        captcha,
+      }, lang);
       const data = await res.json();
+
+      if (!res.ok) {
+        // Kode lama sudah hangus di server: siapkan kode baru untuk percobaan berikutnya.
+        captchaServer.muatUlang();
+        setCaptcha("");
+      }
 
       if (res.ok) {
         toast({
@@ -87,6 +101,7 @@ export default function LoginPage({ params }: LoginPageProps) {
         });
       }
     } catch (err) {
+      captchaServer.muatUlang();
       toast({
         variant: "destructive",
         title: "Error",
@@ -208,15 +223,14 @@ export default function LoginPage({ params }: LoginPageProps) {
               {dict.login.captcha}
             </label>
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-              <div className="bg-[#F9FBF8] border border-gray-100 rounded-lg p-2 md:p-3 w-fit flex items-center justify-center">
-                <span className="text-xl md:text-2xl font-serif tracking-[0.3em] select-none italic text-gray-600">
-                  B <span className="text-[#82B124]">4</span> 7{" "}
-                  <span className="text-red-400">X</span> 2 Q
-                </span>
-              </div>
+              <CaptchaGambar captcha={captchaServer} lang={lang} />
               <Input
                 type="text"
                 required
+                autoComplete="off"
+                autoCapitalize="characters"
+                spellCheck={false}
+                maxLength={10}
                 value={captcha}
                 onChange={(e) => setCaptcha(e.target.value)}
                 placeholder={dict.login.captchaPlaceholder}

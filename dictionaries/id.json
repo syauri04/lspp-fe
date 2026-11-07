@@ -108,7 +108,7 @@
     "passwordPlaceholder": "Buat kata sandi",
     "confirmPasswordPlaceholder": "Ketik ulang kata sandi",
     "captchaPlaceholder": "Masukan Karakter di atas",
-    "passwordHint": "Harus lebih dari 8 huruf",
+    "passwordHint": "Min. 8 karakter, berisi huruf besar & kecil, angka, dan simbol (mis. Rahasia#123)",
     "createBtn": "Buat Akun",
     "registerGoogle": "Daftar dengan Google",
     "haveAccount": "Sudah punya akun?",
@@ -229,7 +229,7 @@
       "newest": "Terbaru",
       "oldest": "Terlama",
       "mostViewed": "Terbanyak dibuka",
-      "category": "Kategori"
+      "category": "Bidang"
     },
     "flow": {
       "title": "Alur Sertifikasi",

@@ -9,9 +9,10 @@ import { Input } from "@/components/ui/input";
 import { getDictionary } from "../dictionaries";
 import { useAuth } from "@/lib/auth-context";
 import { useToast } from "@/hooks/use-toast";
-import { registerUser, loginGoogle } from "@/service/auth.service";
+import { registerUser, loginGoogle, cekAturanPassword } from "@/service/auth.service";
 import { GoogleLogin } from "@react-oauth/google";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
+import { CaptchaGambar, useCaptcha } from "@/components/auth/CaptchaGambar";
 
 interface RegisterPageProps {
   params: Promise<{ lang: "id" | "en" }>;
@@ -30,6 +31,7 @@ export default function RegisterPage({ params }: RegisterPageProps) {
   const [password, setPassword] = useState("");
   const [passwordConfirmation, setPasswordConfirmation] = useState("");
   const [captcha, setCaptcha] = useState("");
+  const captchaServer = useCaptcha();
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -48,6 +50,22 @@ export default function RegisterPage({ params }: RegisterPageProps) {
     e.preventDefault();
     if (loading) return;
 
+    // Cek aturan password lebih dulu (bahasa sesuai halaman) agar captcha tidak terbuang.
+    const kurang = cekAturanPassword(password, lang);
+    if (kurang.length > 0) {
+      toast({
+        variant: "destructive",
+        title: lang === "id" ? "Password Belum Sesuai" : "Password Requirements Not Met",
+        description: (
+          <span className="text-white font-bold">
+            {lang === "id" ? "Password harus berisi " : "Password must contain "}
+            {kurang.join(", ")}.
+          </span>
+        ),
+      });
+      return;
+    }
+
     if (password !== passwordConfirmation) {
       toast({
         variant: "destructive",
@@ -61,14 +79,15 @@ export default function RegisterPage({ params }: RegisterPageProps) {
       return;
     }
 
-    if (captcha.trim().replace(/\s+/g, "").toUpperCase() !== "B47X2Q") {
+    // Kode captcha dicek di server (sekali pakai), di sini hanya pastikan sudah diisi.
+    if (!captchaServer.id || !captcha.trim()) {
       toast({
         variant: "destructive",
-        title: lang === "id" ? "Captcha Salah" : "Invalid Captcha",
+        title: lang === "id" ? "Captcha Belum Diisi" : "Captcha Required",
         description:
           lang === "id"
-            ? "Karakter captcha tidak cocok."
-            : "The captcha characters do not match.",
+            ? "Ketik karakter yang tampil pada gambar captcha."
+            : "Type the characters shown in the captcha image.",
       });
       return;
     }
@@ -80,8 +99,14 @@ export default function RegisterPage({ params }: RegisterPageProps) {
         email,
         password,
         password_confirmation: passwordConfirmation,
-      });
+        captcha_id: captchaServer.id,
+        captcha,
+      }, lang);
       const data = await res.json();
+
+      // Kode lama sudah hangus di server (benar/salah): siapkan kode baru.
+      captchaServer.muatUlang();
+      setCaptcha("");
 
       if (res.ok) {
         toast({
@@ -112,6 +137,7 @@ export default function RegisterPage({ params }: RegisterPageProps) {
         });
       }
     } catch (err) {
+      captchaServer.muatUlang();
       toast({
         variant: "destructive",
         title: lang === "id" ? "Kesalahan" : "Error",
@@ -273,15 +299,14 @@ export default function RegisterPage({ params }: RegisterPageProps) {
               {dict.register.captcha}
             </label>
             <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-              <div className="bg-[#F9FBF8] border border-gray-100 rounded-lg p-2 md:p-3 w-fit flex items-center justify-center">
-                <span className="text-xl md:text-2xl font-serif tracking-[0.3em] select-none italic text-gray-600">
-                  B <span className="text-[#82B124]">4</span> 7{" "}
-                  <span className="text-red-400 font-bold">X</span> 2 Q
-                </span>
-              </div>
+              <CaptchaGambar captcha={captchaServer} lang={lang} />
               <Input
                 type="text"
                 required
+                autoComplete="off"
+                autoCapitalize="characters"
+                spellCheck={false}
+                maxLength={10}
                 value={captcha}
                 onChange={(e) => setCaptcha(e.target.value)}
                 placeholder={dict.register.captchaPlaceholder}

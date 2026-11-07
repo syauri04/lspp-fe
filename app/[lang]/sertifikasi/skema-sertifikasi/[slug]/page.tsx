@@ -90,6 +90,7 @@ export default function DetailSkema({ params }: DetailSkemaProps) {
                 price: formatRupiah(item.amount),
                 image: item.image,
                 slug: item.slug,
+                lang, // tanpa ini link card & tombol Daftar menjadi /undefined/... (404)
               }));
 
             setRelatedSchemes(adaptedRelated);

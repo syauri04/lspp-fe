@@ -1,13 +1,18 @@
 "use client";
 
 import { useState } from "react";
-import { Upload, FileCheck2 } from "lucide-react";
+import { Upload, FileCheck2, AlertCircle } from "lucide-react";
 
 interface FileUploadProps {
   label: string;
   placeholder: string;
-  onFileChange?: (file: File | null) => void;
+  /** Kembalikan false untuk menolak file (input dikosongkan kembali). */
+  onFileChange?: (file: File | null) => boolean | void;
   accept?: string;
+  /** Keterangan kecil di bawah field, mis. "PDF, maks. 25 MB". */
+  hint?: string;
+  /** Pesan error per field (validasi lokal atau dari server). */
+  error?: string | null;
 }
 
 export default function FileUpload({
@@ -15,13 +20,20 @@ export default function FileUpload({
   placeholder,
   onFileChange,
   accept,
+  hint,
+  error,
 }: FileUploadProps) {
   const [fileName, setFileName] = useState<string | null>(null);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] ?? null;
+    const diterima = onFileChange?.(file) !== false;
+    if (!diterima) {
+      e.target.value = "";
+      setFileName(null);
+      return;
+    }
     setFileName(file ? file.name : null);
-    onFileChange?.(file);
   };
 
   return (
@@ -34,7 +46,11 @@ export default function FileUpload({
           onChange={handleChange}
           className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
         />
-        <div className="flex items-center justify-between px-4 py-3 border border-gray-200 rounded-xl bg-white group-hover:border-[#82B124] transition-all">
+        <div
+          className={`flex items-center justify-between px-4 py-3 border rounded-xl bg-white transition-all ${
+            error ? "border-red-400" : "border-gray-200 group-hover:border-[#82B124]"
+          }`}
+        >
           <div className="flex items-center gap-3 overflow-hidden">
             <div className="p-2 bg-gray-50 rounded-lg group-hover:bg-[#82B124]/10">
               {fileName ? (
@@ -56,6 +72,14 @@ export default function FileUpload({
           </span>
         </div>
       </div>
+      {error ? (
+        <p className="flex items-start gap-1.5 text-xs font-medium text-red-500">
+          <AlertCircle className="h-3.5 w-3.5 mt-px shrink-0" />
+          {error}
+        </p>
+      ) : (
+        hint && <p className="text-xs text-gray-400">{hint}</p>
+      )}
     </div>
   );
 }

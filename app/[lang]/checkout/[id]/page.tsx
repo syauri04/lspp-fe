@@ -7,6 +7,8 @@ import Navigation from "@/components/navigation";
 import Footer from "@/components/Footer";
 import { ChevronLeft, CalendarDays, CheckCircle2, ShieldCheck, Clock, CreditCard, Landmark } from "lucide-react";
 import TransferManual, { ID_FORM_BUKTI, type BuktiTransfer, type RekeningLsp } from "@/components/checkout/TransferManual";
+import VoucherForm, { type VoucherTerpasang } from "@/components/checkout/VoucherForm";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { getDictionary } from "@/app/[lang]/dictionaries";
 import { useAuth } from "@/lib/auth-context";
@@ -28,7 +30,13 @@ interface CheckoutDetail {
     title: LangField;
     image: string;
   };
-  jumlah: string; // angka dalam bentuk string, mis. "3000000.00"
+  jumlah: string; // angka dalam bentuk string, mis. "3000000.00" — total yang harus dibayar (setelah voucher)
+  /** Harga sebelum potongan voucher. */
+  harga_awal: string;
+  potongan: string;
+  voucher: VoucherTerpasang | null;
+  /** Alasan voucher tidak bisa diubah (mis. sesi DOKU sudah dibuat), null = bisa. */
+  voucher_terkunci: string | null;
   kode_transaksi: string;
   batas_bayar: string | null;
   /** Metode yang diaktifkan admin di CMS (Pengaturan Pembayaran). */
@@ -92,6 +100,7 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
 
   const { token } = useAuth();
   const { toast } = useToast();
+  const router = useRouter();
 
   const [dict, setDict] = useState<any>(null);
   const [detail, setDetail] = useState<CheckoutDetail | null>(null);
@@ -460,6 +469,36 @@ export default function CheckoutPage({ params }: CheckoutPageProps) {
                   : {detail.kode_transaksi}
                 </span>
               </div>
+
+              {Number(detail.potongan) > 0 && (
+                <>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">Harga Sertifikasi</span>
+                    <span className="font-medium text-gray-900">: {formatRupiah(detail.harga_awal)}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-gray-500">
+                      Potongan Voucher{detail.voucher ? ` (${detail.voucher.kode})` : ""}
+                    </span>
+                    <span className="font-medium text-[#82B124]">: − {formatRupiah(detail.potongan)}</span>
+                  </div>
+                </>
+              )}
+
+              {token && (
+                <VoucherForm
+                  kodePendaftaran={kodePendaftaran}
+                  token={token}
+                  voucher={detail.voucher}
+                  terkunci={detail.voucher_terkunci}
+                  onBerubah={({ status, pesan }) => {
+                    notifikasi("Voucher", pesan);
+                    // Potongan 100%: tagihan langsung lunas -> halaman status pembayaran.
+                    if (status === "paid") router.push(`/${lang}/checkout/${kodePendaftaran}/selesai`);
+                    else muatDetail();
+                  }}
+                />
+              )}
 
               <hr className="my-2 border-gray-100" />
 
