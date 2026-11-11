@@ -136,3 +136,24 @@ export function cekAturanPassword(password: string, lang: string): string[] {
   if (!/[\p{P}\p{S}\p{Z}]/u.test(password)) kurang.push(en ? "at least one symbol (e.g. ! @ # ?)" : "minimal satu simbol (mis. ! @ # ?)");
   return kurang;
 }
+
+/** Lupa password: minta link atur ulang (respons selalu sama, terdaftar atau tidak). */
+export async function lupaPassword(body: { email: string; captcha_id: string | null; captcha: string }, lang: string) {
+  return fetch(`${API_BASE_URL}/auth/forgot-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json", "X-Locale": lang },
+    body: JSON.stringify(body),
+  });
+}
+
+/** Atur ulang password memakai token dari email. */
+export async function aturUlangPassword(
+  body: { token: string; email: string; password: string; password_confirmation: string },
+  lang: string,
+) {
+  return fetch(`${API_BASE_URL}/auth/reset-password`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json", "X-Locale": lang },
+    body: JSON.stringify(body),
+  });
+}

@@ -38,6 +38,7 @@ import {
   getNotifikasi,
   getPendaftaranSaya,
   judulSkema,
+  unduhBerkasSertifikasi,
   urlWebsite,
   type KelompokPendaftaran,
   type NotifikasiAsesi,
@@ -121,8 +122,22 @@ export default function ProfilePage({ params }: ProfilePageProps) {
   const [skemaDiikuti, setSkemaDiikuti] = useState<PendaftaranAsesi[] | null>(null);
   const [notifikasi, setNotifikasi] = useState<NotifikasiAsesi[] | null>(null);
   const [galatData, setGalatData] = useState<string | null>(null);
+  /** Path berkas yang sedang diunduh (satu per satu). */
+  const [mengunduh, setMengunduh] = useState<string | null>(null);
 
   const selectedSertifikasi = daftar.find((d) => d.kode_pendaftaran === selectedKode) ?? null;
+
+  const unduh = async (path: string, namaCadangan: string) => {
+    if (!token || mengunduh) return;
+    setMengunduh(path);
+    try {
+      await unduhBerkasSertifikasi(token, path, namaCadangan);
+    } catch {
+      toast({ variant: "destructive", title: "Gagal", description: dict?.profile?.downloadFailed ?? "Gagal mengunduh berkas." });
+    } finally {
+      setMengunduh(null);
+    }
+  };
 
   const [formData, setFormData] = useState({
     name: "",
@@ -662,7 +677,8 @@ export default function ProfilePage({ params }: ProfilePageProps) {
             <div className="relative -mx-6 md:-mx-16 lg:-mx-24">
               <div className="flex gap-6 overflow-x-auto pb-4 px-6 md:px-16 lg:px-24 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
                 {skemaDiikuti.map((skema) => {
-                  const hasil = skema.asesmen?.hasil;
+                  const hasil = skema.sertifikasi?.hasil ?? skema.asesmen?.hasil;
+                  const sertifikat = skema.sertifikasi?.sertifikat ?? null;
                   return (
                     <div
                       key={skema.kode_pendaftaran}
@@ -692,19 +708,50 @@ export default function ProfilePage({ params }: ProfilePageProps) {
                             {" · "}
                             {formatTanggal(skema.asesmen?.selesai_at ?? skema.jadwal?.tanggal, lang, skema.asesmen?.selesai_at ? "Asia/Jakarta" : "UTC")}
                           </p>
-                          {hasil === "kompeten" && (
-                            <p className="text-gray-400 text-xs mt-1">E-Sertifikat sedang diproses.</p>
+                          {sertifikat ? (
+                            <div className="text-xs mt-2 space-y-0.5">
+                              <p className="text-gray-500">
+                                {dict.profile.certificateNo}: <span className="font-mono text-gray-700 break-all">{sertifikat.no_sertifikat}</span>
+                              </p>
+                              <p className="text-gray-500">
+                                {sertifikat.tanggal_aktif} s/d {sertifikat.tanggal_expired} ·{" "}
+                                <span className={sertifikat.status === "berlaku" ? "font-semibold text-[#78B51A]" : "font-semibold text-red-500"}>
+                                  {sertifikat.status === "berlaku" ? dict.profile.statusValid : dict.profile.statusInvalid}
+                                </span>
+                              </p>
+                            </div>
+                          ) : (
+                            hasil === "kompeten" &&
+                            !skema.sertifikasi && <p className="text-gray-400 text-xs mt-1">{dict.profile.certificateProcessing}</p>
                           )}
                         </div>
-                        <button
-                          type="button"
-                          disabled
-                          title="E-Sertifikat belum tersedia"
-                          className="mt-4 inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#78B51A] text-white rounded-lg transition-colors font-semibold text-sm w-full disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          <Download className="h-4 w-4" />{" "}
-                          {dict.profile.downloadCertificate}
-                        </button>
+                        <div className="mt-4 space-y-2">
+                          {hasil === "kompeten" && (
+                            <button
+                              type="button"
+                              disabled={!sertifikat || mengunduh !== null}
+                              onClick={() => sertifikat && unduh(sertifikat.unduh, "E-Sertifikat.pdf")}
+                              title={sertifikat ? undefined : dict.profile.certificateProcessing}
+                              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#78B51A] text-white rounded-lg transition-colors font-semibold text-sm w-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {mengunduh === sertifikat?.unduh ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}{" "}
+                              {dict.profile.downloadCertificate}
+                            </button>
+                          )}
+                          {skema.sertifikasi?.dokumen.map((d) => (
+                            <button
+                              key={d.jenis}
+                              type="button"
+                              disabled={mengunduh !== null}
+                              onClick={() => unduh(d.unduh, `${d.jenis}.pdf`)}
+                              title={d.label}
+                              className="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-[#78B51A] text-[#5A8F12] bg-white hover:bg-[#F2F8E8] rounded-lg transition-colors font-semibold text-sm w-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                            >
+                              {mengunduh === d.unduh ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}{" "}
+                              {dict.profile.downloadSk}
+                            </button>
+                          ))}
+                        </div>
                       </div>
                     </div>
                   );

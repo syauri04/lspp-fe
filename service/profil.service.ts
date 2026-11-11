@@ -33,6 +33,28 @@ export interface PendaftaranAsesi {
   } | null;
   /** cek_pembayaran = bukti transfer manual sedang diverifikasi admin. */
   aksi: { jenis: "bayar" | "cek_pembayaran" | "mulai_asesmen"; url: string } | null;
+  /** Hasil sertifikasi; null sampai LSP menyelesaikan proses penerbitan. */
+  sertifikasi: HasilSertifikasi | null;
+}
+
+export interface SertifikatPublik {
+  nama: string;
+  no_blanko: string;
+  no_sertifikat: string;
+  skema: { judul: Record<string, string> | null; nomor: string | null };
+  unit_kompetensi: { kode_unit: string | null; judul_unit: string | null }[];
+  tanggal_aktif: string;
+  tanggal_expired: string;
+  masa_berlaku_tahun: number;
+  status: "berlaku" | "tidak_berlaku";
+}
+
+export interface HasilSertifikasi {
+  hasil: "kompeten" | "belum_kompeten";
+  selesai_at: string | null;
+  /** Dokumen SK yang boleh diunduh asesi (mis. SK Hasil Uji). `unduh` = path API. */
+  dokumen: { jenis: string; label: string; unduh: string }[];
+  sertifikat: (SertifikatPublik & { unduh: string }) | null;
 }
 
 export interface PendaftaranAsesiDetail extends PendaftaranAsesi {
@@ -104,6 +126,30 @@ export async function bacaNotifikasi(token: string, id: string) {
 
 export function bacaSemuaNotifikasi(token: string) {
   return ambil<{ data: { jumlah: number } }>(`/notifikasi/baca-semua`, token, { method: "POST" });
+}
+
+/**
+ * Unduh berkas hasil sertifikasi milik asesi (endpoint terotorisasi, Bearer token) lalu simpan
+ * di perangkat. `path` dari API (mis. "/pendaftaran-sertifikasi/{kode}/sertifikasi/e-sertifikat").
+ */
+export async function unduhBerkasSertifikasi(token: string, path: string, namaCadangan: string): Promise<void> {
+  // Hanya path API sertifikasi milik sendiri (bukan URL bebas).
+  if (!/^\/pendaftaran-sertifikasi\/[\w-]+\/sertifikasi\/[a-z_-]+$/.test(path)) throw new Error("Berkas tidak valid.");
+  const res = await fetch(`${API_BASE_URL}${path}`, {
+    headers: { Accept: "application/pdf", Authorization: `Bearer ${token}` },
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error(`Gagal mengunduh berkas (status ${res.status}).`);
+
+  const nama = /filename="?([^";]+)"?/i.exec(res.headers.get("Content-Disposition") ?? "")?.[1] ?? namaCadangan;
+  const url = URL.createObjectURL(await res.blob());
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = nama;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 30_000);
 }
 
 /* ------------------------------ helper tampilan ------------------------------ */
