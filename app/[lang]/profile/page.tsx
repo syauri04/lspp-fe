@@ -71,8 +71,8 @@ const statusBadgeStyle: Record<KelompokPendaftaran, string> = {
 };
 
 const labelHasil: Record<string, string> = {
-  kompeten: "Kompeten",
-  belum_kompeten: "Belum Kompeten",
+  kompeten: "Direkomendasikan Kompeten",
+  belum_kompeten: "Direkomendasikan Belum Kompeten",
 };
 
 /** Pesan notifikasi dengan nama skema ditebalkan (seperti desain). */
