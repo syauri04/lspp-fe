@@ -112,20 +112,28 @@ export default function ProfilePage({ params }: ProfilePageProps) {
   const [isEditingPassword, setIsEditingPassword] = useState(false);
   const [isUpdating, setIsUpdating] = useState(false);
   const [isUpdatingPassword, setIsUpdatingPassword] = useState(false);
-  const [activeFilter, setActiveFilter] = useState<KelompokPendaftaran | null>(null);
-  const [jumlah, setJumlah] = useState<Record<KelompokPendaftaran, number> | null>(null);
+  const [activeFilter, setActiveFilter] = useState<KelompokPendaftaran | null>(
+    null,
+  );
+  const [jumlah, setJumlah] = useState<Record<
+    KelompokPendaftaran,
+    number
+  > | null>(null);
   const [daftar, setDaftar] = useState<PendaftaranAsesi[]>([]);
   const [memuatDaftar, setMemuatDaftar] = useState(false);
   const [selectedKode, setSelectedKode] = useState<string | null>(null);
   const [detail, setDetail] = useState<PendaftaranAsesiDetail | null>(null);
   const [memuatDetail, setMemuatDetail] = useState(false);
-  const [skemaDiikuti, setSkemaDiikuti] = useState<PendaftaranAsesi[] | null>(null);
+  const [skemaDiikuti, setSkemaDiikuti] = useState<PendaftaranAsesi[] | null>(
+    null,
+  );
   const [notifikasi, setNotifikasi] = useState<NotifikasiAsesi[] | null>(null);
   const [galatData, setGalatData] = useState<string | null>(null);
   /** Path berkas yang sedang diunduh (satu per satu). */
   const [mengunduh, setMengunduh] = useState<string | null>(null);
 
-  const selectedSertifikasi = daftar.find((d) => d.kode_pendaftaran === selectedKode) ?? null;
+  const selectedSertifikasi =
+    daftar.find((d) => d.kode_pendaftaran === selectedKode) ?? null;
 
   const unduh = async (path: string, namaCadangan: string) => {
     if (!token || mengunduh) return;
@@ -133,7 +141,11 @@ export default function ProfilePage({ params }: ProfilePageProps) {
     try {
       await unduhBerkasSertifikasi(token, path, namaCadangan);
     } catch {
-      toast({ variant: "destructive", title: "Gagal", description: dict?.profile?.downloadFailed ?? "Gagal mengunduh berkas." });
+      toast({
+        variant: "destructive",
+        title: "Gagal",
+        description: dict?.profile?.downloadFailed ?? "Gagal mengunduh berkas.",
+      });
     } finally {
       setMengunduh(null);
     }
@@ -164,7 +176,12 @@ export default function ProfilePage({ params }: ProfilePageProps) {
       .then((res) => (res.ok ? res.json() : null))
       .then((res) => {
         const terbaru = res?.data;
-        if (!batal && terbaru && user && terbaru.has_password !== user.has_password) {
+        if (
+          !batal &&
+          terbaru &&
+          user &&
+          terbaru.has_password !== user.has_password
+        ) {
           updateUser({ ...user, has_password: terbaru.has_password });
         }
       })
@@ -177,7 +194,9 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
   // Dari halaman daftar skema: /profile?aksi=set-password langsung membuka form password.
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("aksi") === "set-password") {
+    if (
+      new URLSearchParams(window.location.search).get("aksi") === "set-password"
+    ) {
       setIsEditingPassword(true);
     }
   }, []);
@@ -206,7 +225,9 @@ export default function ProfilePage({ params }: ProfilePageProps) {
         const j = ringkas.meta.jumlah;
         setJumlah(j);
         setActiveFilter(
-          j.diproses > 0 ? "diproses" : (filterOptions.find((o) => j[o.key] > 0)?.key ?? "diajukan"),
+          j.diproses > 0
+            ? "diproses"
+            : (filterOptions.find((o) => j[o.key] > 0)?.key ?? "diajukan"),
         );
         setSkemaDiikuti(selesai.data);
         setNotifikasi(notif.data);
@@ -257,12 +278,20 @@ export default function ProfilePage({ params }: ProfilePageProps) {
     async (notif: NotifikasiAsesi) => {
       if (!token) return;
       if (!notif.dibaca) {
-        setNotifikasi((daftarLama) => daftarLama?.map((n) => (n.id === notif.id ? { ...n, dibaca: true } : n)) ?? null);
-        bacaNotifikasi(token, notif.id).then(beritahuNotifikasiBerubah).catch(() => {});
+        setNotifikasi(
+          (daftarLama) =>
+            daftarLama?.map((n) =>
+              n.id === notif.id ? { ...n, dibaca: true } : n,
+            ) ?? null,
+        );
+        bacaNotifikasi(token, notif.id)
+          .then(beritahuNotifikasiBerubah)
+          .catch(() => {});
       }
       if (notif.url) {
         const tujuan = urlWebsite(notif.url, lang);
-        if (/^https?:\/\//.test(tujuan)) window.open(tujuan, "_blank", "noopener,noreferrer");
+        if (/^https?:\/\//.test(tujuan))
+          window.open(tujuan, "_blank", "noopener,noreferrer");
         else router.push(tujuan);
       }
     },
@@ -384,7 +413,10 @@ export default function ProfilePage({ params }: ProfilePageProps) {
       const res = punyaPassword
         ? await changePassword(passData, token)
         : await setPassword(
-            { password: passData.password, password_confirmation: passData.password_confirmation },
+            {
+              password: passData.password,
+              password_confirmation: passData.password_confirmation,
+            },
             token,
           );
 
@@ -418,7 +450,9 @@ export default function ProfilePage({ params }: ProfilePageProps) {
           title: "Gagal",
           description: pesanErrorApi(
             result,
-            punyaPassword ? "Gagal mengubah password." : "Gagal membuat password.",
+            punyaPassword
+              ? "Gagal mengubah password."
+              : "Gagal membuat password.",
           ),
         });
       }
@@ -595,9 +629,10 @@ export default function ProfilePage({ params }: ProfilePageProps) {
             <p className="mb-3 flex items-start gap-2 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
               <Info size={16} className="mt-0.5 shrink-0" />
               <span>
-                Akun Anda terdaftar melalui Google dan belum memiliki password. Buat password untuk dapat
-                mendaftar skema sertifikasi. Email &amp; password ini digunakan untuk login ke aplikasi MUK
-                saat asesmen.
+                Akun Anda terdaftar melalui Google dan belum memiliki password.
+                Buat password untuk dapat mendaftar skema sertifikasi. Email
+                &amp; password ini digunakan untuk login ke aplikasi MUK saat
+                asesmen.
               </span>
             </p>
           )}
@@ -647,7 +682,8 @@ export default function ProfilePage({ params }: ProfilePageProps) {
               {isUpdatingPassword ? "Menyimpan..." : "Simpan Password"}
             </button>
             <p className="w-full text-xs text-gray-500">
-              Minimal 8 karakter, berisi huruf besar &amp; kecil, angka, dan simbol (mis. Rahasia#123).
+              Minimal 8 karakter, berisi huruf besar &amp; kecil, angka, dan
+              simbol (mis. Rahasia#123).
             </p>
           </div>
         </div>
@@ -655,7 +691,9 @@ export default function ProfilePage({ params }: ProfilePageProps) {
 
       {galatData && (
         <div className="max-w-7xl mx-auto px-6 md:px-16 lg:px-24 mt-6">
-          <p className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">{galatData}</p>
+          <p className="rounded-xl bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700">
+            {galatData}
+          </p>
         </div>
       )}
 
@@ -671,13 +709,15 @@ export default function ProfilePage({ params }: ProfilePageProps) {
             </div>
           ) : skemaDiikuti.length === 0 ? (
             <p className="text-gray-500">
-              Belum ada skema yang selesai diikuti. Skema akan tampil di sini setelah asesmen selesai.
+              Belum ada skema yang selesai diikuti. Skema akan tampil di sini
+              setelah asesmen selesai.
             </p>
           ) : (
             <div className="relative -mx-6 md:-mx-16 lg:-mx-24">
               <div className="flex gap-6 overflow-x-auto pb-4 px-6 md:px-16 lg:px-24 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
                 {skemaDiikuti.map((skema) => {
-                  const hasil = skema.sertifikasi?.hasil ?? skema.asesmen?.hasil;
+                  const hasil =
+                    skema.sertifikasi?.hasil ?? skema.asesmen?.hasil;
                   const sertifikat = skema.sertifikasi?.sertifikat ?? null;
                   return (
                     <div
@@ -699,30 +739,59 @@ export default function ProfilePage({ params }: ProfilePageProps) {
                           </h3>
                           <p className="text-gray-500 text-sm mt-1">
                             {hasil ? (
-                              <span className={hasil === "kompeten" ? "font-semibold text-[#78B51A]" : "font-semibold text-red-500"}>
+                              <span
+                                className={
+                                  hasil === "kompeten"
+                                    ? "font-semibold text-[#78B51A]"
+                                    : "font-semibold text-red-500"
+                                }
+                              >
                                 {labelHasil[hasil]}
                               </span>
                             ) : (
                               skema.status_label
                             )}
                             {" · "}
-                            {formatTanggal(skema.asesmen?.selesai_at ?? skema.jadwal?.tanggal, lang, skema.asesmen?.selesai_at ? "Asia/Jakarta" : "UTC")}
+                            {formatTanggal(
+                              skema.asesmen?.selesai_at ??
+                                skema.jadwal?.tanggal,
+                              lang,
+                              skema.asesmen?.selesai_at
+                                ? "Asia/Jakarta"
+                                : "UTC",
+                            )}
                           </p>
                           {sertifikat ? (
                             <div className="text-xs mt-2 space-y-0.5">
                               <p className="text-gray-500">
-                                {dict.profile.certificateNo}: <span className="font-mono text-gray-700 break-all">{sertifikat.no_sertifikat}</span>
+                                {dict.profile.certificateNo}:{" "}
+                                <span className="font-mono text-gray-700 break-all">
+                                  {sertifikat.no_sertifikat}
+                                </span>
                               </p>
                               <p className="text-gray-500">
-                                {sertifikat.tanggal_aktif} s/d {sertifikat.tanggal_expired} ·{" "}
-                                <span className={sertifikat.status === "berlaku" ? "font-semibold text-[#78B51A]" : "font-semibold text-red-500"}>
-                                  {sertifikat.status === "berlaku" ? dict.profile.statusValid : dict.profile.statusInvalid}
+                                {sertifikat.tanggal_aktif} s/d{" "}
+                                {sertifikat.tanggal_expired} ·{" "}
+                                <span
+                                  className={
+                                    sertifikat.status === "berlaku"
+                                      ? "font-semibold text-[#78B51A]"
+                                      : "font-semibold text-red-500"
+                                  }
+                                >
+                                  {sertifikat.status === "berlaku"
+                                    ? dict.profile.statusValid
+                                    : dict.profile.statusInvalid}
                                 </span>
                               </p>
                             </div>
                           ) : (
                             hasil === "kompeten" &&
-                            !skema.sertifikasi && <p className="text-gray-400 text-xs mt-1">{dict.profile.certificateProcessing}</p>
+                            !skema.sertifikasi && (
+                              <p className="text-gray-400 text-xs mt-1">
+                                {dict.profile.certificateProcessing}
+                              </p>
+                            )
                           )}
                         </div>
                         <div className="mt-4 space-y-2">
@@ -730,11 +799,22 @@ export default function ProfilePage({ params }: ProfilePageProps) {
                             <button
                               type="button"
                               disabled={!sertifikat || mengunduh !== null}
-                              onClick={() => sertifikat && unduh(sertifikat.unduh, "E-Sertifikat.pdf")}
-                              title={sertifikat ? undefined : dict.profile.certificateProcessing}
+                              onClick={() =>
+                                sertifikat &&
+                                unduh(sertifikat.unduh, "E-Sertifikat.pdf")
+                              }
+                              title={
+                                sertifikat
+                                  ? undefined
+                                  : dict.profile.certificateProcessing
+                              }
                               className="inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-[#78B51A] text-white rounded-lg transition-colors font-semibold text-sm w-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                              {mengunduh === sertifikat?.unduh ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}{" "}
+                              {mengunduh === sertifikat?.unduh ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Download className="h-4 w-4" />
+                              )}{" "}
                               {dict.profile.downloadCertificate}
                             </button>
                           )}
@@ -747,7 +827,11 @@ export default function ProfilePage({ params }: ProfilePageProps) {
                               title={d.label}
                               className="inline-flex items-center justify-center gap-2 px-4 py-2.5 border border-[#78B51A] text-[#5A8F12] bg-white hover:bg-[#F2F8E8] rounded-lg transition-colors font-semibold text-sm w-full cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
                             >
-                              {mengunduh === d.unduh ? <Loader2 className="h-4 w-4 animate-spin" /> : <Download className="h-4 w-4" />}{" "}
+                              {mengunduh === d.unduh ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Download className="h-4 w-4" />
+                              )}{" "}
                               {dict.profile.downloadSk}
                             </button>
                           ))}
@@ -756,6 +840,251 @@ export default function ProfilePage({ params }: ProfilePageProps) {
                     </div>
                   );
                 })}
+              </div>
+            </div>
+          )}
+        </div>
+      </section>
+
+      <section className="py-16 bg-white">
+        <div className="max-w-7xl mx-auto px-6 md:px-16 lg:px-24">
+          <h2 className="text-xl font-bold text-gray-900 mb-6">
+            Silahkan Pilih Sertifikasi untuk melihat status detail
+          </h2>
+
+          <div className="flex flex-wrap gap-3 mb-6">
+            {filterOptions.map((opt) => (
+              <button
+                key={opt.key}
+                type="button"
+                onClick={() => setActiveFilter(opt.key)}
+                className={`px-6 py-2.5 rounded-lg font-medium text-sm transition-colors ${
+                  activeFilter === opt.key
+                    ? "bg-[#8CC63F] text-white"
+                    : "bg-white text-gray-400 border border-gray-200 hover:bg-gray-50"
+                }`}
+              >
+                {opt.label}
+                {jumlah && jumlah[opt.key] > 0 && (
+                  <span className="ml-1.5 opacity-80">({jumlah[opt.key]})</span>
+                )}
+              </button>
+            ))}
+          </div>
+
+          {memuatDaftar ? (
+            <div className="flex justify-center py-10">
+              <Loader2 className="h-8 w-8 animate-spin text-[#78B51A]" />
+            </div>
+          ) : daftar.length === 0 ? (
+            <p className="text-gray-500">
+              Belum ada sertifikasi pada kategori ini.{" "}
+              <Link
+                href={`/${lang}/sertifikasi`}
+                className="text-[#78B51A] font-semibold hover:underline"
+              >
+                Lihat skema sertifikasi
+              </Link>
+            </p>
+          ) : (
+            <div className="relative -mx-6 md:-mx-16 lg:-mx-24">
+              <div className="flex gap-4 overflow-x-auto pb-4 px-6 md:px-16 lg:px-24 snap-x snap-mandatory">
+                {daftar.map((item) => (
+                  <div
+                    key={item.kode_pendaftaran}
+                    role="button"
+                    tabIndex={0}
+                    onClick={() => setSelectedKode(item.kode_pendaftaran)}
+                    onKeyDown={(e) =>
+                      (e.key === "Enter" || e.key === " ") &&
+                      setSelectedKode(item.kode_pendaftaran)
+                    }
+                    className={`text-left flex-shrink-0 w-[380px] snap-start bg-white rounded-2xl shadow-sm border overflow-hidden flex transition-all cursor-pointer ${
+                      selectedKode === item.kode_pendaftaran
+                        ? "border-[#8CC63F] ring-1 ring-[#8CC63F]"
+                        : "border-gray-100 hover:border-gray-200"
+                    }`}
+                  >
+                    <div className="w-32 h-full min-h-[140px] relative flex-shrink-0">
+                      <Image
+                        src={item.skema?.gambar || GAMBAR_CADANGAN}
+                        alt={judulSkema(item, lang)}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <div className="flex-1 p-4 flex flex-col gap-2">
+                      <h3 className="font-bold text-gray-900 text-sm leading-snug">
+                        {judulSkema(item, lang)}
+                      </h3>
+                      <p className="flex items-center gap-1.5 text-xs text-gray-500">
+                        <Calendar size={14} />{" "}
+                        {formatTanggal(item.diajukan_at, lang)}
+                      </p>
+                      <span
+                        className={`inline-flex items-center gap-1.5 w-fit px-3 py-1 rounded-md text-xs font-medium ${statusBadgeStyle[item.kelompok ?? "diajukan"]}`}
+                      >
+                        <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                        {item.status_label}
+                      </span>
+                      {(item.aksi?.jenis === "bayar" ||
+                        item.aksi?.jenis === "cek_pembayaran") && (
+                        <Link
+                          href={urlWebsite(item.aksi.url, lang)}
+                          onClick={(e) => e.stopPropagation()}
+                          className={`mt-1 inline-flex items-center justify-center w-fit px-4 py-1.5 rounded-lg text-xs font-semibold ${
+                            item.aksi.jenis === "bayar"
+                              ? "bg-[#8CC63F] text-white hover:bg-[#78B51A]"
+                              : "border border-[#8CC63F] text-[#78B51A] hover:bg-[#8CC63F]/10"
+                          }`}
+                        >
+                          {item.aksi.jenis === "bayar"
+                            ? "Bayar Sekarang"
+                            : "Lihat Status Pembayaran"}
+                        </Link>
+                      )}
+                      {item.aksi?.jenis === "mulai_asesmen" && (
+                        <a
+                          href={item.aksi.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="mt-1 inline-flex items-center justify-center w-fit px-4 py-1.5 rounded-lg text-xs font-semibold bg-[#8CC63F] text-white hover:bg-[#78B51A]"
+                        >
+                          Mulai Asesmen
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {selectedSertifikasi && (
+            <div className="mt-6 bg-gray-50 rounded-3xl p-6 md:p-8">
+              <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
+                <div className="flex items-center justify-between gap-4 pb-6 border-b border-gray-100">
+                  <div className="flex items-center gap-4">
+                    <div className="w-16 h-16 relative rounded-lg overflow-hidden flex-shrink-0">
+                      <Image
+                        src={
+                          selectedSertifikasi.skema?.gambar || GAMBAR_CADANGAN
+                        }
+                        alt={judulSkema(selectedSertifikasi, lang)}
+                        fill
+                        className="object-cover"
+                      />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900">
+                        {judulSkema(selectedSertifikasi, lang)}
+                      </h3>
+                      <p className="flex items-center gap-1.5 text-sm text-gray-500 mt-1">
+                        <Calendar size={14} />{" "}
+                        {selectedSertifikasi.jadwal?.tanggal
+                          ? formatTanggal(
+                              selectedSertifikasi.jadwal.tanggal,
+                              lang,
+                              "UTC",
+                            )
+                          : "Jadwal asesmen belum ditentukan"}
+                      </p>
+                    </div>
+                  </div>
+                  <span
+                    className={`px-4 py-1.5 rounded-lg text-sm font-medium flex-shrink-0 ${statusBadgeStyle[selectedSertifikasi.kelompok ?? "diajukan"]}`}
+                  >
+                    {selectedSertifikasi.status_label}
+                  </span>
+                </div>
+
+                {/* Jadwal & TUK */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-6 border-b border-gray-100">
+                  <div>
+                    <p className="text-xs text-gray-400 mb-1">Jadwal Asesmen</p>
+                    <p className="font-medium text-gray-900">
+                      {selectedSertifikasi.jadwal?.tanggal
+                        ? `${formatTanggal(selectedSertifikasi.jadwal.tanggal, lang, "UTC")}${
+                            selectedSertifikasi.jadwal.waktu_mulai
+                              ? `, ${selectedSertifikasi.jadwal.waktu_mulai}${selectedSertifikasi.jadwal.waktu_selesai ? `–${selectedSertifikasi.jadwal.waktu_selesai}` : ""} WIB`
+                              : ""
+                          }`
+                        : "-"}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400 mb-1">TUK</p>
+                    <p className="font-medium text-gray-900">
+                      {selectedSertifikasi.jadwal?.tuk
+                        ? [
+                            selectedSertifikasi.jadwal.tuk.nama,
+                            selectedSertifikasi.jadwal.tuk.kota,
+                          ]
+                            .filter(Boolean)
+                            .join(" - ")
+                        : "-"}
+                    </p>
+                  </div>
+                  {selectedSertifikasi.jadwal?.asesor && (
+                    <div>
+                      <p className="text-xs text-gray-400 mb-1">Asesor</p>
+                      <p className="font-medium text-gray-900">
+                        {selectedSertifikasi.jadwal.asesor}
+                      </p>
+                    </div>
+                  )}
+                  {selectedSertifikasi.asesmen?.hasil && (
+                    <div>
+                      <p className="text-xs text-gray-400 mb-1">
+                        Hasil Asesmen
+                      </p>
+                      <p
+                        className={`font-semibold ${selectedSertifikasi.asesmen.hasil === "kompeten" ? "text-[#78B51A]" : "text-red-500"}`}
+                      >
+                        {labelHasil[selectedSertifikasi.asesmen.hasil]}
+                      </p>
+                    </div>
+                  )}
+                  {selectedSertifikasi.catatan_admin && (
+                    <div className="md:col-span-2">
+                      <p className="text-xs text-gray-400 mb-1">
+                        Catatan Admin
+                      </p>
+                      <p className="font-medium text-red-600">
+                        {selectedSertifikasi.catatan_admin}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Timeline */}
+                <div className="pt-6 space-y-6">
+                  {memuatDetail && (
+                    <Loader2 className="h-6 w-6 animate-spin text-[#78B51A]" />
+                  )}
+                  {!memuatDetail &&
+                    detail?.kode_pendaftaran ===
+                      selectedSertifikasi.kode_pendaftaran &&
+                    detail.timeline.map((step, idx) => (
+                      <div key={idx} className="flex gap-4">
+                        <span className="h-3 w-3 rounded-full bg-[#8CC63F] mt-1.5 flex-shrink-0" />
+                        <div>
+                          <h4 className="font-semibold text-gray-900">
+                            {step.judul}
+                          </h4>
+                          <p className="text-xs text-gray-400 mt-0.5">
+                            {formatTanggal(step.tanggal, lang, "UTC")}
+                          </p>
+                          {step.keterangan && (
+                            <p className="text-sm text-gray-600 mt-1">
+                              {step.keterangan}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                </div>
               </div>
             </div>
           )}
@@ -776,7 +1105,9 @@ export default function ProfilePage({ params }: ProfilePageProps) {
                   <Loader2 className="h-6 w-6 animate-spin text-[#78B51A]" />
                 </div>
               )}
-              {notifikasi?.length === 0 && <p className="text-gray-500">Belum ada notifikasi.</p>}
+              {notifikasi?.length === 0 && (
+                <p className="text-gray-500">Belum ada notifikasi.</p>
+              )}
               {notifikasi?.map((notif) => (
                 <button
                   key={notif.id}
@@ -810,217 +1141,6 @@ export default function ProfilePage({ params }: ProfilePageProps) {
               Selengkapnya
             </Link>
           </div>
-        </div>
-      </section>
-
-      <section className="py-16 bg-white">
-        <div className="max-w-7xl mx-auto px-6 md:px-16 lg:px-24">
-          <h2 className="text-xl font-bold text-gray-900 mb-6">
-            Silahkan Pilih Sertifikasi untuk melihat status detail
-          </h2>
-
-          <div className="flex flex-wrap gap-3 mb-6">
-            {filterOptions.map((opt) => (
-              <button
-                key={opt.key}
-                type="button"
-                onClick={() => setActiveFilter(opt.key)}
-                className={`px-6 py-2.5 rounded-lg font-medium text-sm transition-colors ${
-                  activeFilter === opt.key
-                    ? "bg-[#8CC63F] text-white"
-                    : "bg-white text-gray-400 border border-gray-200 hover:bg-gray-50"
-                }`}
-              >
-                {opt.label}
-                {jumlah && jumlah[opt.key] > 0 && <span className="ml-1.5 opacity-80">({jumlah[opt.key]})</span>}
-              </button>
-            ))}
-          </div>
-
-          {memuatDaftar ? (
-            <div className="flex justify-center py-10">
-              <Loader2 className="h-8 w-8 animate-spin text-[#78B51A]" />
-            </div>
-          ) : daftar.length === 0 ? (
-            <p className="text-gray-500">
-              Belum ada sertifikasi pada kategori ini.{" "}
-              <Link href={`/${lang}/sertifikasi`} className="text-[#78B51A] font-semibold hover:underline">
-                Lihat skema sertifikasi
-              </Link>
-            </p>
-          ) : (
-            <div className="relative -mx-6 md:-mx-16 lg:-mx-24">
-              <div className="flex gap-4 overflow-x-auto pb-4 px-6 md:px-16 lg:px-24 snap-x snap-mandatory">
-                {daftar.map((item) => (
-                  <div
-                    key={item.kode_pendaftaran}
-                    role="button"
-                    tabIndex={0}
-                    onClick={() => setSelectedKode(item.kode_pendaftaran)}
-                    onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && setSelectedKode(item.kode_pendaftaran)}
-                    className={`text-left flex-shrink-0 w-[380px] snap-start bg-white rounded-2xl shadow-sm border overflow-hidden flex transition-all cursor-pointer ${
-                      selectedKode === item.kode_pendaftaran
-                        ? "border-[#8CC63F] ring-1 ring-[#8CC63F]"
-                        : "border-gray-100 hover:border-gray-200"
-                    }`}
-                  >
-                    <div className="w-32 h-full min-h-[140px] relative flex-shrink-0">
-                      <Image
-                        src={item.skema?.gambar || GAMBAR_CADANGAN}
-                        alt={judulSkema(item, lang)}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                    <div className="flex-1 p-4 flex flex-col gap-2">
-                      <h3 className="font-bold text-gray-900 text-sm leading-snug">
-                        {judulSkema(item, lang)}
-                      </h3>
-                      <p className="flex items-center gap-1.5 text-xs text-gray-500">
-                        <Calendar size={14} /> {formatTanggal(item.diajukan_at, lang)}
-                      </p>
-                      <span
-                        className={`inline-flex items-center gap-1.5 w-fit px-3 py-1 rounded-md text-xs font-medium ${statusBadgeStyle[item.kelompok ?? "diajukan"]}`}
-                      >
-                        <span className="h-1.5 w-1.5 rounded-full bg-current" />
-                        {item.status_label}
-                      </span>
-                      {(item.aksi?.jenis === "bayar" || item.aksi?.jenis === "cek_pembayaran") && (
-                        <Link
-                          href={urlWebsite(item.aksi.url, lang)}
-                          onClick={(e) => e.stopPropagation()}
-                          className={`mt-1 inline-flex items-center justify-center w-fit px-4 py-1.5 rounded-lg text-xs font-semibold ${
-                            item.aksi.jenis === "bayar"
-                              ? "bg-[#8CC63F] text-white hover:bg-[#78B51A]"
-                              : "border border-[#8CC63F] text-[#78B51A] hover:bg-[#8CC63F]/10"
-                          }`}
-                        >
-                          {item.aksi.jenis === "bayar" ? "Bayar Sekarang" : "Lihat Status Pembayaran"}
-                        </Link>
-                      )}
-                      {item.aksi?.jenis === "mulai_asesmen" && (
-                        <a
-                          href={item.aksi.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          onClick={(e) => e.stopPropagation()}
-                          className="mt-1 inline-flex items-center justify-center w-fit px-4 py-1.5 rounded-lg text-xs font-semibold bg-[#8CC63F] text-white hover:bg-[#78B51A]"
-                        >
-                          Mulai Asesmen
-                        </a>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {selectedSertifikasi && (
-            <div className="mt-6 bg-gray-50 rounded-3xl p-6 md:p-8">
-              <div className="bg-white rounded-2xl shadow-sm p-6 md:p-8">
-                <div className="flex items-center justify-between gap-4 pb-6 border-b border-gray-100">
-                  <div className="flex items-center gap-4">
-                    <div className="w-16 h-16 relative rounded-lg overflow-hidden flex-shrink-0">
-                      <Image
-                        src={selectedSertifikasi.skema?.gambar || GAMBAR_CADANGAN}
-                        alt={judulSkema(selectedSertifikasi, lang)}
-                        fill
-                        className="object-cover"
-                      />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-bold text-gray-900">
-                        {judulSkema(selectedSertifikasi, lang)}
-                      </h3>
-                      <p className="flex items-center gap-1.5 text-sm text-gray-500 mt-1">
-                        <Calendar size={14} />{" "}
-                        {selectedSertifikasi.jadwal?.tanggal
-                          ? formatTanggal(selectedSertifikasi.jadwal.tanggal, lang, "UTC")
-                          : "Jadwal asesmen belum ditentukan"}
-                      </p>
-                    </div>
-                  </div>
-                  <span
-                    className={`px-4 py-1.5 rounded-lg text-sm font-medium flex-shrink-0 ${statusBadgeStyle[selectedSertifikasi.kelompok ?? "diajukan"]}`}
-                  >
-                    {selectedSertifikasi.status_label}
-                  </span>
-                </div>
-
-                {/* Jadwal & TUK */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-6 border-b border-gray-100">
-                  <div>
-                    <p className="text-xs text-gray-400 mb-1">Jadwal Asesmen</p>
-                    <p className="font-medium text-gray-900">
-                      {selectedSertifikasi.jadwal?.tanggal
-                        ? `${formatTanggal(selectedSertifikasi.jadwal.tanggal, lang, "UTC")}${
-                            selectedSertifikasi.jadwal.waktu_mulai
-                              ? `, ${selectedSertifikasi.jadwal.waktu_mulai}${selectedSertifikasi.jadwal.waktu_selesai ? `–${selectedSertifikasi.jadwal.waktu_selesai}` : ""} WIB`
-                              : ""
-                          }`
-                        : "-"}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-xs text-gray-400 mb-1">TUK</p>
-                    <p className="font-medium text-gray-900">
-                      {selectedSertifikasi.jadwal?.tuk
-                        ? [selectedSertifikasi.jadwal.tuk.nama, selectedSertifikasi.jadwal.tuk.kota].filter(Boolean).join(" - ")
-                        : "-"}
-                    </p>
-                  </div>
-                  {selectedSertifikasi.jadwal?.asesor && (
-                    <div>
-                      <p className="text-xs text-gray-400 mb-1">Asesor</p>
-                      <p className="font-medium text-gray-900">{selectedSertifikasi.jadwal.asesor}</p>
-                    </div>
-                  )}
-                  {selectedSertifikasi.asesmen?.hasil && (
-                    <div>
-                      <p className="text-xs text-gray-400 mb-1">Hasil Asesmen</p>
-                      <p
-                        className={`font-semibold ${selectedSertifikasi.asesmen.hasil === "kompeten" ? "text-[#78B51A]" : "text-red-500"}`}
-                      >
-                        {labelHasil[selectedSertifikasi.asesmen.hasil]}
-                      </p>
-                    </div>
-                  )}
-                  {selectedSertifikasi.catatan_admin && (
-                    <div className="md:col-span-2">
-                      <p className="text-xs text-gray-400 mb-1">Catatan Admin</p>
-                      <p className="font-medium text-red-600">{selectedSertifikasi.catatan_admin}</p>
-                    </div>
-                  )}
-                </div>
-
-                {/* Timeline */}
-                <div className="pt-6 space-y-6">
-                  {memuatDetail && <Loader2 className="h-6 w-6 animate-spin text-[#78B51A]" />}
-                  {!memuatDetail &&
-                    detail?.kode_pendaftaran === selectedSertifikasi.kode_pendaftaran &&
-                    detail.timeline.map((step, idx) => (
-                      <div key={idx} className="flex gap-4">
-                        <span className="h-3 w-3 rounded-full bg-[#8CC63F] mt-1.5 flex-shrink-0" />
-                        <div>
-                          <h4 className="font-semibold text-gray-900">
-                            {step.judul}
-                          </h4>
-                          <p className="text-xs text-gray-400 mt-0.5">
-                            {formatTanggal(step.tanggal, lang, "UTC")}
-                          </p>
-                          {step.keterangan && (
-                            <p className="text-sm text-gray-600 mt-1">
-                              {step.keterangan}
-                            </p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
-                </div>
-              </div>
-            </div>
-          )}
         </div>
       </section>
 
