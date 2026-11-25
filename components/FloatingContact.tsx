@@ -3,16 +3,7 @@
 import React, { useEffect, useState } from "react";
 import Image from "next/image";
 import { Mail, Phone, X } from "lucide-react";
-
-const ADMIN = {
-  nama: "Admin LSPP306",
-  telepon: "+62 822-4962-8093",
-  email: "support@lspp306.com",
-  pesanAwal: "Halo Admin LSPP306, saya ingin bertanya tentang sertifikasi.",
-};
-
-// wa.me butuh nomor format internasional tanpa "+", spasi, atau tanda hubung.
-const URL_WHATSAPP = `https://wa.me/${ADMIN.telepon.replace(/\D/g, "")}?text=${encodeURIComponent(ADMIN.pesanAwal)}`;
+import { useKontak } from "@/service/kontak.service";
 
 // Pilihan tutup/buka diingat per browser agar tidak muncul lagi di setiap halaman.
 const KUNCI_PENYIMPANAN = "floating-contact-tertutup";
@@ -20,8 +11,10 @@ const KUNCI_PENYIMPANAN = "floating-contact-tertutup";
 /**
  * Kontak admin (kanan bawah). Klik kartu -> WhatsApp. Tombol X -> ciutkan jadi ikon;
  * klik ikon -> kartu muncul lagi (klik kartu lagi baru ke WhatsApp).
+ * Nama, nomor, email & pesan awal diatur di CMS (Content Website > Kontak Kami).
  */
 const FloatingContact = () => {
+  const kontak = useKontak();
   const [tertutup, setTertutup] = useState(false);
 
   useEffect(() => {
@@ -46,6 +39,9 @@ const FloatingContact = () => {
     </div>
   );
 
+  // Tunggu data kontak agar tidak sekilas menampilkan nomor lama.
+  if (!kontak) return null;
+
   if (tertutup) {
     return (
       <div className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-[9999]">
@@ -65,26 +61,26 @@ const FloatingContact = () => {
     <div className="fixed bottom-4 right-4 md:bottom-6 md:right-6 z-[9999]">
       <div className="relative bg-white/95 backdrop-blur-sm border border-gray-100 rounded-full md:rounded-[2rem] shadow-xl transition-all duration-300 hover:scale-105 group">
         <a
-          href={URL_WHATSAPP}
+          href={kontak.whatsapp.url}
           target="_blank"
           rel="noopener noreferrer"
-          aria-label={`Hubungi ${ADMIN.nama} melalui WhatsApp`}
+          aria-label={`Hubungi ${kontak.nama} melalui WhatsApp`}
           className="flex items-center gap-2.5 md:gap-4 p-2 md:p-3.5 pr-9 md:pr-11 cursor-pointer"
         >
           {ikon}
 
           <div className="flex flex-col justify-center">
-            <h4 className="text-gray-900 font-bold text-xs md:text-base leading-tight">{ADMIN.nama}</h4>
+            <h4 className="text-gray-900 font-bold text-xs md:text-base leading-tight">{kontak.nama}</h4>
 
             <div className="flex flex-col md:gap-0.5 mt-0.5">
               <div className="flex items-center gap-1 text-gray-500">
                 <Phone className="w-2.5 h-2.5 md:w-3 md:h-3" />
-                <span className="text-[10px] md:text-sm font-medium tracking-tight">{ADMIN.telepon}</span>
+                <span className="text-[10px] md:text-sm font-medium tracking-tight">{kontak.whatsapp.tampil}</span>
               </div>
 
               <div className="hidden md:flex items-center gap-1 text-gray-400">
                 <Mail className="w-2.5 h-2.5 md:w-3 md:h-3" />
-                <span className="text-[10px] md:text-xs">{ADMIN.email}</span>
+                <span className="text-[10px] md:text-xs">{kontak.email}</span>
               </div>
             </div>
           </div>

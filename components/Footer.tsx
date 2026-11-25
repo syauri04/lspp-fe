@@ -4,6 +4,7 @@ import { getDictionary } from "@/app/[lang]/dictionaries";
 import { Instagram, Linkedin, Mail, MapPin, Youtube } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import { useKontak } from "@/service/kontak.service";
 
 interface FooterProps {
   lang: "id" | "en";
@@ -11,6 +12,8 @@ interface FooterProps {
 
 const Footer = ({ lang }: FooterProps) => {
   const [dict, setDict] = useState<any>(null);
+  // Alamat & email diatur di CMS (Content Website > Kontak Kami); sama dengan tombol WhatsApp.
+  const kontak = useKontak();
 
   useEffect(() => {
     getDictionary(lang).then((data) => {
@@ -40,23 +43,31 @@ const Footer = ({ lang }: FooterProps) => {
             <h3 className="text-2xl font-bold mb-8">
               {dict.footer?.contactUs || "Kontak Kami"}
             </h3>
-            <div className="flex items-start space-x-4">
-              <MapPin className="w-6 h-6 mt-1 flex-shrink-0" />
-              <p className="text-sm md:text-base leading-relaxed max-w-md">
-                Jl. Raya Mabes Hankam No. 3 Bambu Apus, Cipayung Jl. Raya Mabes
-                Hankam No.3, RT.13/RW.2, Bambu Apus, Kec. Cipayung, Kota Jakarta
-                Timur, Daerah Khusus Ibukota Jakarta 13890
-              </p>
-            </div>
-            <div className="flex items-center space-x-4">
-              <Mail className="w-6 h-6 flex-shrink-0" />
-              <a
-                href="mailto:tigapuluhjuni@gmail.com"
-                className="hover:underline text-sm md:text-base"
-              >
-                tigapuluhjuni@gmail.com
-              </a>
-            </div>
+            {kontak ? (
+              <>
+                <div className="flex items-start space-x-4">
+                  <MapPin className="w-6 h-6 mt-1 flex-shrink-0" />
+                  <p className="text-sm md:text-base leading-relaxed max-w-md whitespace-pre-line">
+                    {kontak.alamat}
+                  </p>
+                </div>
+                <div className="flex items-center space-x-4">
+                  <Mail className="w-6 h-6 flex-shrink-0" />
+                  <a
+                    href={`mailto:${kontak.email}`}
+                    className="hover:underline text-sm md:text-base break-all"
+                  >
+                    {kontak.email}
+                  </a>
+                </div>
+              </>
+            ) : (
+              // Placeholder selama kontak dimuat (menjaga tinggi footer tetap).
+              <div className="space-y-6 animate-pulse" aria-hidden="true">
+                <div className="h-16 max-w-md rounded bg-white/20" />
+                <div className="h-6 w-56 rounded bg-white/20" />
+              </div>
+            )}
           </div>
 
           <div className="md:pl-20">
