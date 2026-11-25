@@ -47,6 +47,8 @@ export default function HomePage({ params }: HomePageProps) {
   const [dict, setDict] = useState<any>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [apiBanners, setApiBanners] = useState<HeroBannerItem[]>([]);
+  // Banner sudah selesai dimuat (berhasil/gagal/kosong) -> boleh tampilkan teks hero bawaan.
+  const [bannerDimuat, setBannerDimuat] = useState(false);
   const [aboutData, setAboutData] = useState<AboutHomeData | null>(null);
   const [newsData, setNewsData] = useState<NewsHomeItem[]>([]);
   const [mitraData, setMitraData] = useState<MitraItem[]>([]);
@@ -60,6 +62,7 @@ export default function HomePage({ params }: HomePageProps) {
 
     getHeroBanners().then((data) => {
       setApiBanners(data);
+      setBannerDimuat(true);
     });
 
     getAboutHome().then((data) => {
@@ -135,7 +138,9 @@ export default function HomePage({ params }: HomePageProps) {
     }).format(num);
   };
 
-  if (!dict || slides.length === 0 || !aboutData || newsData.length === 0) {
+  // Hanya kamus yang wajib (dimuat lokal). Data API ditampilkan per bagian: bagian yang datanya
+  // kosong/gagal dimuat disembunyikan, halaman lain tetap tampil.
+  if (!dict) {
     return null;
   }
 
@@ -171,15 +176,19 @@ export default function HomePage({ params }: HomePageProps) {
             key={currentSlide}
             className="animate-in fade-in slide-in-from-bottom-4 duration-700"
           >
+            {/* Belum ada banner aktif di CMS: teks hero bawaan dari kamus. */}
             <h1 className="text-4xl md:text-5xl font-extrabold leading-tight mb-6 drop-shadow-lg">
-              {slides[currentSlide]?.title}
+              {slides[currentSlide]?.title ??
+                (bannerDimuat ? dict.home.hero.slide1Title : "")}
             </h1>
 
             <p className="text-base md:text-lg max-w-3xl mx-auto mb-10 leading-relaxed font-light opacity-90 drop-shadow">
-              {slides[currentSlide]?.description}
+              {slides[currentSlide]?.description ??
+                (bannerDimuat ? dict.home.hero.slide1Desc : "")}
             </p>
           </div>
 
+          {slides.length > 1 && (
           <div className="flex justify-center items-center gap-6 mt-16 text-white/80">
             <button
               onClick={prevSlide}
@@ -210,6 +219,7 @@ export default function HomePage({ params }: HomePageProps) {
               <ChevronRight className="h-10 w-10" />
             </button>
           </div>
+          )}
         </div>
       </section>
       {/* END HERO SECTION */}
@@ -265,6 +275,7 @@ export default function HomePage({ params }: HomePageProps) {
       {/* END ICON SECTION */}
 
       {/* ABOUT SECTION */}
+      {aboutData && (
       <section className="relative w-full min-h-[500px] md:min-h-[700px] flex items-center justify-center overflow-hidden bg-gray-900">
         <div className="absolute inset-0 z-0">
           <Image
@@ -300,9 +311,11 @@ export default function HomePage({ params }: HomePageProps) {
           </Link>
         </div>
       </section>
+      )}
       {/* END ABOUT SECTION */}
 
       {/* SKEMA SERTIFIKASI SECTION */}
+      {schemes.length > 0 && (
       <section className="py-20 bg-gray-50 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end mb-12 gap-4">
@@ -339,9 +352,11 @@ export default function HomePage({ params }: HomePageProps) {
           </div>
         </div>
       </section>
+      )}
       {/* END SKEMA SERTIFIKASI SECTION */}
 
       {/* BERITA TERBARU SECTION */}
+      {newsData.length > 0 && (
       <section className="py-20 bg-[#78B51A] overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 mb-16 mt-16">
           <div className="flex justify-between items-center">
@@ -415,6 +430,7 @@ export default function HomePage({ params }: HomePageProps) {
           }
         `}</style>
       </section>
+      )}
       {/* END BERITA TERBARU SECTION */}
 
       {/* MEDIA SOSIAL & CLIENT SECTION */}
@@ -435,7 +451,7 @@ export default function HomePage({ params }: HomePageProps) {
                 }
                 className="cursor-pointer bg-[#78B51A] hover:bg-[#669a16] text-white px-8 py-6 rounded-lg font-medium shadow-sm transition-all duration-300 hover:shadow-[0_10px_20px_rgba(120,181,26,0.3)] hover:-translate-y-1"
               >
-                {dict.home.socialSection.title} okeoke
+                {dict.home.socialSection.title}
               </Button>
             </div>
 
@@ -446,6 +462,7 @@ export default function HomePage({ params }: HomePageProps) {
             </div>
           </div>
 
+          {mitraData.length > 0 && (
           <div className="pt-10">
             <h2 className="text-3xl md:text-4xl font-bold text-gray-800 mb-12">
               {dict.home.socialSection.clients}
@@ -486,6 +503,7 @@ export default function HomePage({ params }: HomePageProps) {
               </div>
             </div>
           </div>
+          )}
         </div>
 
         <style jsx>{`
